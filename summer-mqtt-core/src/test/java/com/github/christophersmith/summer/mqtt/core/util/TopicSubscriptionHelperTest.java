@@ -32,10 +32,9 @@ public class TopicSubscriptionHelperTest
     public void initialize()
     {
         topicSubscriptions.clear();
+        topicSubscriptions.add(new TopicSubscription(TOPIC_FILTER, MqttQualityOfService.QOS_0));
         topicSubscriptions
-            .add(new TopicSubscription(TOPIC_FILTER, MqttQualityOfService.AT_MOST_ONCE));
-        topicSubscriptions
-            .add(new TopicSubscription("incoming/message", MqttQualityOfService.AT_MOST_ONCE));
+            .add(new TopicSubscription("incoming/message", MqttQualityOfService.QOS_0));
     }
 
     @Test

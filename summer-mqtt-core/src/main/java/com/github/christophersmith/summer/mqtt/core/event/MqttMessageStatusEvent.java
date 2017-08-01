@@ -13,10 +13,19 @@
  */
 package com.github.christophersmith.summer.mqtt.core.event;
 
+/**
+ * 
+ */
 public class MqttMessageStatusEvent extends MqttStatusEvent
 {
     private static final long serialVersionUID = -6058094788281115650L;
 
+    /**
+     * The default constructor.
+     * 
+     * @param clientId the Client ID value
+     * @param source the {@link Object} that published this event
+     */
     public MqttMessageStatusEvent(String clientId, Object source)
     {
         super(clientId, source);

@@ -14,18 +14,39 @@
 package com.github.christophersmith.summer.mqtt.core.event;
 
 import org.springframework.context.ApplicationEvent;
+import org.springframework.context.ApplicationListener;
 
-public abstract class MqttStatusEvent extends ApplicationEvent
+import com.github.christophersmith.summer.mqtt.core.service.MqttClientService;
+
+/**
+ * A base level {@linkplain ApplicationEvent} instance that is published for various MQTT Status
+ * Events.
+ * <p>
+ * This class is meant to be extended, and allows you to easily subscribe to all MQTT Status Events
+ * with one {@linkplain ApplicationListener}.
+ */
+public class MqttStatusEvent extends ApplicationEvent
 {
     private static final long serialVersionUID = 5008242020022488108L;
     private String            clientId;
 
+    /**
+     * The default constructor.
+     * 
+     * @param clientId the Client ID value
+     * @param source the {@link Object} that published this event
+     */
     public MqttStatusEvent(String clientId, Object source)
     {
         super(source);
         this.clientId = clientId;
     }
 
+    /**
+     * Returns the Client ID of the {@link MqttClientService} instance this event is for.
+     * 
+     * @return the Client ID value
+     */
     public String getClientId()
     {
         return clientId;

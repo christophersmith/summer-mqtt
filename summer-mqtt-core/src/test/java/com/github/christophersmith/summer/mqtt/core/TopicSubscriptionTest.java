@@ -31,7 +31,7 @@ public final class TopicSubscriptionTest
     {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("'topicFilter' must be set!");
-        new TopicSubscription(null, MqttQualityOfService.AT_MOST_ONCE);
+        new TopicSubscription(null, MqttQualityOfService.QOS_0);
     }
 
     @Test
@@ -45,8 +45,7 @@ public final class TopicSubscriptionTest
     @Test
     public void testClone()
     {
-        TopicSubscription topic = new TopicSubscription(TOPIC_FILTER,
-            MqttQualityOfService.AT_MOST_ONCE);
+        TopicSubscription topic = new TopicSubscription(TOPIC_FILTER, MqttQualityOfService.QOS_0);
         TopicSubscription clone = topic.clone();
         Assert.assertEquals(topic.getTopicFilter(), clone.getTopicFilter());
         Assert.assertEquals(topic.getQualityOfService(), clone.getQualityOfService());

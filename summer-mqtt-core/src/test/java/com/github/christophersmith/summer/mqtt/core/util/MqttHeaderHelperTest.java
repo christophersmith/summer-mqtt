@@ -36,22 +36,21 @@ public class MqttHeaderHelperTest
     @Test
     public void testMqttQualityOfServiceHeader()
     {
-        Assert.assertEquals(MqttQualityOfService.EXACTLY_ONCE,
+        Assert.assertEquals(MqttQualityOfService.QOS_2,
             MqttHeaderHelper.getMqttQualityOfServiceHeaderValue(null,
-                MqttQualityOfService.EXACTLY_ONCE.getLevelIdentifier()));
+                MqttQualityOfService.QOS_2.getLevelIdentifier()));
         MessageBuilder<String> builder = MessageBuilder.withPayload("See QoS header");
-        Assert.assertEquals(MqttQualityOfService.EXACTLY_ONCE,
+        Assert.assertEquals(MqttQualityOfService.QOS_2,
             MqttHeaderHelper.getMqttQualityOfServiceHeaderValue(builder.build(),
-                MqttQualityOfService.EXACTLY_ONCE.getLevelIdentifier()));
+                MqttQualityOfService.QOS_2.getLevelIdentifier()));
         builder.setHeader(MqttHeaderHelper.QOS, "blah!");
-        Assert.assertEquals(MqttQualityOfService.EXACTLY_ONCE,
+        Assert.assertEquals(MqttQualityOfService.QOS_2,
             MqttHeaderHelper.getMqttQualityOfServiceHeaderValue(builder.build(),
-                MqttQualityOfService.EXACTLY_ONCE.getLevelIdentifier()));
-        builder.setHeader(MqttHeaderHelper.QOS,
-            MqttQualityOfService.AT_LEAST_ONCE.getLevelIdentifier());
-        Assert.assertEquals(MqttQualityOfService.AT_LEAST_ONCE,
+                MqttQualityOfService.QOS_2.getLevelIdentifier()));
+        builder.setHeader(MqttHeaderHelper.QOS, MqttQualityOfService.QOS_1.getLevelIdentifier());
+        Assert.assertEquals(MqttQualityOfService.QOS_1,
             MqttHeaderHelper.getMqttQualityOfServiceHeaderValue(builder.build(),
-                MqttQualityOfService.EXACTLY_ONCE.getLevelIdentifier()));
+                MqttQualityOfService.QOS_2.getLevelIdentifier()));
     }
 
     @Test

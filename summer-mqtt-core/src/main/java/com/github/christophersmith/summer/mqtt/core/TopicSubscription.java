@@ -56,7 +56,7 @@ public final class TopicSubscription
     /**
      * Returns the {@link MqttQualityOfService} for this instance.
      * 
-     * @return the {@link MqttQualityOfService} for this instance
+     * @return a {@link MqttQualityOfService} value
      */
     public MqttQualityOfService getQualityOfService()
     {

@@ -22,18 +22,18 @@ public final class MqttQualityOfServiceTest
     public void testInvalidLevelIdentifier()
     {
         int levelIdentifier = -1;
-        Assert.assertEquals(MqttQualityOfService.AT_MOST_ONCE,
+        Assert.assertEquals(MqttQualityOfService.QOS_0,
             MqttQualityOfService.findByLevelIdentifier(levelIdentifier));
     }
 
     @Test
     public void testEquality()
     {
-        Assert.assertEquals(MqttQualityOfService.AT_MOST_ONCE, MqttQualityOfService
-            .findByLevelIdentifier(MqttQualityOfService.QOS_0.getLevelIdentifier()));
-        Assert.assertEquals(MqttQualityOfService.AT_LEAST_ONCE, MqttQualityOfService
-            .findByLevelIdentifier(MqttQualityOfService.QOS_1.getLevelIdentifier()));
-        Assert.assertEquals(MqttQualityOfService.EXACTLY_ONCE, MqttQualityOfService
-            .findByLevelIdentifier(MqttQualityOfService.QOS_2.getLevelIdentifier()));
+        Assert.assertEquals(MqttQualityOfService.QOS_0,
+            MqttQualityOfService.findByLevelIdentifier(0));
+        Assert.assertEquals(MqttQualityOfService.QOS_1,
+            MqttQualityOfService.findByLevelIdentifier(1));
+        Assert.assertEquals(MqttQualityOfService.QOS_2,
+            MqttQualityOfService.findByLevelIdentifier(2));
     }
 }
