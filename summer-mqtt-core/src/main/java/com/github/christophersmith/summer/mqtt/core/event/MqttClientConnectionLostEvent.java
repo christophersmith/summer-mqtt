@@ -13,17 +13,40 @@
  */
 package com.github.christophersmith.summer.mqtt.core.event;
 
+import org.springframework.context.ApplicationEventPublisher;
+
+import com.github.christophersmith.summer.mqtt.core.service.MqttClientService;
+
+/**
+ * An Event that is sent when the {@link MqttClientService} implementation loses it's connection
+ * from the Broker.
+ * <p>
+ * This message is only sent if the {@link MqttClientService} has an
+ * {@link ApplicationEventPublisher} instance defined.
+ */
 public class MqttClientConnectionLostEvent extends MqttConnectionStatusEvent
 {
     private static final long serialVersionUID = 8706554560333104589L;
     private boolean           autoReconnect;
 
+    /**
+     * The default constructor.
+     * 
+     * @param clientId the Client ID value
+     * @param autoReconnect whether the Client will automatically reconnect
+     * @param source the {@link Object} that published this event
+     */
     public MqttClientConnectionLostEvent(String clientId, boolean autoReconnect, Object source)
     {
         super(clientId, source);
         this.autoReconnect = autoReconnect;
     }
 
+    /**
+     * Returns whether the {@link MqttClientService} instance will reconnect automatically.
+     * 
+     * @return true or false
+     */
     public boolean isAutoReconnect()
     {
         return autoReconnect;

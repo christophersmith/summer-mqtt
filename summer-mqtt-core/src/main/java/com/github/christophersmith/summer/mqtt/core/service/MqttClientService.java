@@ -15,6 +15,8 @@ package com.github.christophersmith.summer.mqtt.core.service;
 
 import java.util.List;
 
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
 
@@ -43,7 +45,7 @@ import com.github.christophersmith.summer.mqtt.core.TopicSubscription;
  * out-bound {@link MessageChannel}, those messages should be published via the implementation's
  * MQTT Client.
  */
-public interface MqttClientService extends MessageHandler
+public interface MqttClientService extends MessageHandler, ApplicationEventPublisherAware
 {
     /**
      * Returns the assigned Client ID for this instance.
@@ -165,4 +167,6 @@ public interface MqttClientService extends MessageHandler
     void stop();
 
     void close();
+
+    void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher);
 }

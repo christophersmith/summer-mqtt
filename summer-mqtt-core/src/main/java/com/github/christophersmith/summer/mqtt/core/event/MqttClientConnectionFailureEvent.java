@@ -13,12 +13,31 @@
  */
 package com.github.christophersmith.summer.mqtt.core.event;
 
+import org.springframework.context.ApplicationEventPublisher;
+
+import com.github.christophersmith.summer.mqtt.core.service.MqttClientService;
+
+/**
+ * An Event that is sent when the {@link MqttClientService} implementation cannot connect to the
+ * Broker.
+ * <p>
+ * This message is only sent if the {@link MqttClientService} has an
+ * {@link ApplicationEventPublisher} instance defined.
+ */
 public class MqttClientConnectionFailureEvent extends MqttConnectionStatusEvent
 {
     private static final long serialVersionUID = -5582288189040167240L;
     private boolean           autoReconnect;
     private Throwable         throwable;
 
+    /**
+     * The default constructor.
+     * 
+     * @param clientId the Client ID value
+     * @param autoReconnect whether the Client will automatically reconnect
+     * @param throwable the originating {@link Throwable}
+     * @param source the {@link Object} that published this event
+     */
     public MqttClientConnectionFailureEvent(String clientId, boolean autoReconnect,
         Throwable throwable, Object source)
     {
@@ -27,11 +46,21 @@ public class MqttClientConnectionFailureEvent extends MqttConnectionStatusEvent
         this.throwable = throwable;
     }
 
+    /**
+     * Returns whether the {@link MqttClientService} instance will reconnect automatically.
+     * 
+     * @return true or false
+     */
     public boolean isAutoReconnect()
     {
         return autoReconnect;
     }
 
+    /**
+     * Returns the originating {@link Throwable} that caused this issue.
+     * 
+     * @return a {@link Throwable}
+     */
     public Throwable getThrowable()
     {
         return throwable;

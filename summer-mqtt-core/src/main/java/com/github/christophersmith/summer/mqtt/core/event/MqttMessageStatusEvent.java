@@ -13,8 +13,14 @@
  */
 package com.github.christophersmith.summer.mqtt.core.event;
 
+import org.springframework.context.ApplicationListener;
+
 /**
- * 
+ * A base {@link MqttStatusEvent} implementation specifically for capturing MQTT Message Status
+ * Events like Publish and Delivered.
+ * <p>
+ * This class is meant to be extended, and allows you to easily subscribe to all MQTT Message Status
+ * Events with one {@linkplain ApplicationListener}.
  */
 public class MqttMessageStatusEvent extends MqttStatusEvent
 {

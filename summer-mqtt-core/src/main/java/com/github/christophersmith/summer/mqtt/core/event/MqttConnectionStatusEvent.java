@@ -13,10 +13,25 @@
  */
 package com.github.christophersmith.summer.mqtt.core.event;
 
+import org.springframework.context.ApplicationListener;
+
+/**
+ * A base {@link MqttStatusEvent} implementation specifically for capturing MQTT Connection Status
+ * Events like Connected, Connection Failure, Connection Lost or Disconnected.
+ * <p>
+ * This class is meant to be extended, and allows you to easily subscribe to all MQTT Connection
+ * Status Events with one {@linkplain ApplicationListener}.
+ */
 public class MqttConnectionStatusEvent extends MqttStatusEvent
 {
     private static final long serialVersionUID = -531996904510858561L;
 
+    /**
+     * The default constructor.
+     * 
+     * @param clientId the Client ID value
+     * @param source the {@link Object} that published this event
+     */
     public MqttConnectionStatusEvent(String clientId, Object source)
     {
         super(clientId, source);

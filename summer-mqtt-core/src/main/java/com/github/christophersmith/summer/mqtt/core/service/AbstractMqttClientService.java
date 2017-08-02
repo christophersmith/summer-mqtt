@@ -19,7 +19,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.util.Assert;
@@ -30,8 +29,7 @@ import com.github.christophersmith.summer.mqtt.core.MqttQualityOfService;
 import com.github.christophersmith.summer.mqtt.core.TopicSubscription;
 import com.github.christophersmith.summer.mqtt.core.util.MqttClientEventPublisher;
 
-public abstract class AbstractMqttClientService
-    implements MqttClientService, ApplicationEventPublisherAware
+public abstract class AbstractMqttClientService implements MqttClientService
 {
     protected transient final ReentrantLock            reentrantLock            = new ReentrantLock(
         true);
