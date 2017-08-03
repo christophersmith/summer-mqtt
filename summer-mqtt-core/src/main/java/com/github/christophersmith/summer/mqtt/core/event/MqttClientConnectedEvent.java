@@ -14,6 +14,7 @@
 package com.github.christophersmith.summer.mqtt.core.event;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.util.Assert;
 
 import com.github.christophersmith.summer.mqtt.core.service.MqttClientService;
 
@@ -37,11 +38,16 @@ public class MqttClientConnectedEvent extends MqttConnectionStatusEvent
      * @param serverUri the Server URI value
      * @param subscribedTopics the subscribed Topics
      * @param source the {@link Object} that published this event
+     * 
+     * @throws IllegalArgumentException if the {@code clientId} or {@code serverUri} is null or
+     *             empty, or if the {@code subscribedTopics} value is null
      */
     public MqttClientConnectedEvent(String clientId, String serverUri, String[] subscribedTopics,
         Object source)
     {
         super(clientId, source);
+        Assert.hasText(serverUri, "'serverUri' must be set!");
+        Assert.notNull(subscribedTopics, "'subscribedTopics' must be set!");
         this.serverUri = serverUri;
         this.subscribedTopics = subscribedTopics;
     }

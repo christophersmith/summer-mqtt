@@ -33,7 +33,7 @@ import com.github.christophersmith.summer.mqtt.core.TopicSubscription;
  * 
  * <ul>
  * <li>Connection information and state reporting</li>
- * <li>Starting and stopping the underlying MQTT Client connection</li>
+ * <li>Starting, stopping and closing the underlying MQTT Client connection</li>
  * <li>Subscribing and unsubscribing from Topic Filters</li>
  * </ul>
  * 
@@ -159,14 +159,23 @@ public interface MqttClientService extends MessageHandler, ApplicationEventPubli
     /**
      * Disconnects the MQTT Client if it's in a connected state.
      * <p>
-     * If the MQTT Client is configured with Clean Sessions, all subscribed Topic Filters are
-     * unsubscribed from.
-     * <p>
      * If a reconnection task is scheduled, that reconnection task is also canceled.
      */
     void stop();
 
+    /**
+     * Closes the MQTT Client to prepare for a shutdown, of a shutdown of Spring's Context.
+     * <p>
+     * This method calls the {@link #stop()} method before closing. Once this method is invoked, the
+     * MQTT Client can no longer be restarted.
+     */
     void close();
 
+    /**
+     * Set the {@link ApplicationEventPublisher} that will be used to publish events from the Events
+     * package.
+     * <p>
+     * If the value is a null, no Events will be published.
+     */
     void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher);
 }

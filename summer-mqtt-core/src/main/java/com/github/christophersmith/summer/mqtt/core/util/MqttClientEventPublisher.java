@@ -22,64 +22,145 @@ import com.github.christophersmith.summer.mqtt.core.event.MqttClientDisconnected
 import com.github.christophersmith.summer.mqtt.core.event.MqttMessageDeliveredEvent;
 import com.github.christophersmith.summer.mqtt.core.event.MqttMessagePublishedEvent;
 
-public class MqttClientEventPublisher
+/**
+ * This is a convenience class that facilitates the publishing of Events to an
+ * {@link ApplicationEventPublisher} instance.
+ * <p>
+ * This class in only used internally.
+ */
+public final class MqttClientEventPublisher
 {
+    /**
+     * Publishes a {@link MqttClientConnectedEvent} message to the
+     * {@link ApplicationEventPublisher}.
+     * <p>
+     * If the {@link ApplicationEventPublisher} instance is null, no event message will be
+     * published.
+     * 
+     * @param clientId the Client ID value
+     * @param serverUri the Server URI the MQTT Client is connected to
+     * @param subscribedTopics the Topic Filters the MQTT Client is subscribed to
+     * @param applicationEventPublisher the {@link ApplicationEventPublisher} value
+     * @param source the source that sent this event
+     */
     public void publishConnectedEvent(String clientId, String serverUri, String[] subscribedTopics,
-        ApplicationEventPublisher applicationEventPublisher)
+        ApplicationEventPublisher applicationEventPublisher, Object source)
     {
         if (applicationEventPublisher != null)
         {
             applicationEventPublisher.publishEvent(
-                new MqttClientConnectedEvent(clientId, serverUri, subscribedTopics, this));
+                new MqttClientConnectedEvent(clientId, serverUri, subscribedTopics, source));
         }
     }
 
+    /**
+     * Publishes a {@link MqttClientConnectionFailureEvent} message to the
+     * {@link ApplicationEventPublisher}.
+     * <p>
+     * If the {@link ApplicationEventPublisher} instance is null, no event message will be
+     * published.
+     * 
+     * @param clientId the Client ID value
+     * @param autoReconnect whether the MQTT Client will automatically reconnect
+     * @param throwable the originating {@link Throwable}
+     * @param applicationEventPublisher the {@link ApplicationEventPublisher} value
+     * @param source the source that sent this event
+     */
     public void publishConnectionFailureEvent(String clientId, boolean autoReconnect,
-        Throwable throwable, ApplicationEventPublisher applicationEventPublisher)
+        Throwable throwable, ApplicationEventPublisher applicationEventPublisher, Object source)
     {
         if (applicationEventPublisher != null)
         {
             applicationEventPublisher.publishEvent(
-                new MqttClientConnectionFailureEvent(clientId, autoReconnect, throwable, this));
+                new MqttClientConnectionFailureEvent(clientId, autoReconnect, throwable, source));
         }
     }
 
+    /**
+     * Publishes a {@link MqttClientConnectionLostEvent} message to the
+     * {@link ApplicationEventPublisher}.
+     * <p>
+     * If the {@link ApplicationEventPublisher} instance is null, no event message will be
+     * published.
+     * 
+     * @param clientId the Client ID value
+     * @param autoReconnect whether the MQTT Client will automatically reconnect
+     * @param applicationEventPublisher the {@link ApplicationEventPublisher} value
+     * @param source the source that sent this event
+     */
     public void publishConnectionLostEvent(String clientId, boolean autoReconnect,
-        ApplicationEventPublisher applicationEventPublisher)
+        ApplicationEventPublisher applicationEventPublisher, Object source)
     {
         if (applicationEventPublisher != null)
         {
             applicationEventPublisher
-                .publishEvent(new MqttClientConnectionLostEvent(clientId, autoReconnect, this));
+                .publishEvent(new MqttClientConnectionLostEvent(clientId, autoReconnect, source));
         }
     }
 
+    /**
+     * Publishes a {@link MqttClientDisconnectedEvent} message to the
+     * {@link ApplicationEventPublisher}.
+     * <p>
+     * If the {@link ApplicationEventPublisher} instance is null, no event message will be
+     * published.
+     * 
+     * @param clientId the Client ID value
+     * @param applicationEventPublisher the {@link ApplicationEventPublisher} value
+     * @param source the source that sent this event
+     */
     public void publishDisconnectedEvent(String clientId,
-        ApplicationEventPublisher applicationEventPublisher)
-    {
-        if (applicationEventPublisher != null)
-        {
-            applicationEventPublisher.publishEvent(new MqttClientDisconnectedEvent(clientId, this));
-        }
-    }
-
-    public void publishMessageDeliveredEvent(String clientId, int messageIdentifier,
-        ApplicationEventPublisher applicationEventPublisher)
+        ApplicationEventPublisher applicationEventPublisher, Object source)
     {
         if (applicationEventPublisher != null)
         {
             applicationEventPublisher
-                .publishEvent(new MqttMessageDeliveredEvent(clientId, messageIdentifier, this));
+                .publishEvent(new MqttClientDisconnectedEvent(clientId, source));
         }
     }
 
+    /**
+     * Publishes a {@link MqttMessageDeliveredEvent} message to the
+     * {@link ApplicationEventPublisher}.
+     * <p>
+     * If the {@link ApplicationEventPublisher} instance is null, no event message will be
+     * published.
+     * 
+     * @param clientId the Client ID value
+     * @param messageIdentifier the Message Identifier
+     * @param applicationEventPublisher the {@link ApplicationEventPublisher} value
+     * @param source the source that sent this event
+     */
+    public void publishMessageDeliveredEvent(String clientId, int messageIdentifier,
+        ApplicationEventPublisher applicationEventPublisher, Object source)
+    {
+        if (applicationEventPublisher != null)
+        {
+            applicationEventPublisher
+                .publishEvent(new MqttMessageDeliveredEvent(clientId, messageIdentifier, source));
+        }
+    }
+
+    /**
+     * Publishes a {@link MqttMessagePublishedEvent} message to the
+     * {@link ApplicationEventPublisher}.
+     * <p>
+     * If the {@link ApplicationEventPublisher} instance is null, no event message will be
+     * published.
+     * 
+     * @param clientId the Client ID value
+     * @param messageIdentifier the Message Identifier
+     * @param correlationId the Correlation ID
+     * @param applicationEventPublisher the {@link ApplicationEventPublisher} value
+     * @param source the source that sent this event
+     */
     public void publishMessagePublishedEvent(String clientId, int messageIdentifier,
-        String correlationId, ApplicationEventPublisher applicationEventPublisher)
+        String correlationId, ApplicationEventPublisher applicationEventPublisher, Object source)
     {
         if (applicationEventPublisher != null)
         {
             applicationEventPublisher.publishEvent(
-                new MqttMessagePublishedEvent(clientId, messageIdentifier, correlationId, this));
+                new MqttMessagePublishedEvent(clientId, messageIdentifier, correlationId, source));
         }
     }
 }

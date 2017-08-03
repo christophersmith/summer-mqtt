@@ -15,6 +15,7 @@ package com.github.christophersmith.summer.mqtt.core.event;
 
 import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
+import org.springframework.util.Assert;
 
 import com.github.christophersmith.summer.mqtt.core.service.MqttClientService;
 
@@ -35,10 +36,13 @@ public class MqttStatusEvent extends ApplicationEvent
      * 
      * @param clientId the Client ID value
      * @param source the {@link Object} that published this event
+     * 
+     * @throws IllegalArgumentException if the {@code clientId} is null or empty
      */
     public MqttStatusEvent(String clientId, Object source)
     {
         super(source);
+        Assert.hasText(clientId, "'clientId' must be set!");
         this.clientId = clientId;
     }
 

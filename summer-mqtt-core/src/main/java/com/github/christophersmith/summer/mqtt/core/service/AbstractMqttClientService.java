@@ -29,6 +29,10 @@ import com.github.christophersmith.summer.mqtt.core.MqttQualityOfService;
 import com.github.christophersmith.summer.mqtt.core.TopicSubscription;
 import com.github.christophersmith.summer.mqtt.core.util.MqttClientEventPublisher;
 
+/**
+ * This class provides common functionality of the {@link MqttClientService} interface, to minimize
+ * effort in actual implementations.
+ */
 public abstract class AbstractMqttClientService implements MqttClientService
 {
     protected transient final ReentrantLock            reentrantLock            = new ReentrantLock(
@@ -45,6 +49,13 @@ public abstract class AbstractMqttClientService implements MqttClientService
     protected boolean                                  started;
     protected MessageChannel                           inboundMessageChannel;
 
+    /**
+     * The default constructor.
+     * 
+     * @param connectionType a {@link MqttClientConnectionType} value
+     * 
+     * @throws IllegalArgumentException if the {@code connectionType} value is null
+     */
     protected AbstractMqttClientService(final MqttClientConnectionType connectionType)
     {
         Assert.notNull(connectionType, "'connectionType' must be set!");
@@ -65,6 +76,11 @@ public abstract class AbstractMqttClientService implements MqttClientService
         return started;
     }
 
+    /**
+     * Returns the {@link MqttClientConfiguration} object that is associated to this instance.
+     * 
+     * @return a {@link MqttClientConfiguration} value
+     */
     public MqttClientConfiguration getMqttClientConfiguration()
     {
         return mqttClientConfiguration;
@@ -76,18 +92,42 @@ public abstract class AbstractMqttClientService implements MqttClientService
         this.applicationEventPublisher = applicationEventPublisher;
     }
 
+    /**
+     * Sets the in-bound {@link MessageChannel} this instance will push messages it receives from
+     * the Broker.
+     * <p>
+     * This is only a valid action if your {@link MqttClientService} instance has a Connection Type
+     * of either {@link MqttClientConnectionType#PUBSUB} or
+     * {@link MqttClientConnectionType#SUBSCRIBER}.
+     * 
+     * @param inboundMessageChannel a {@link MessageChannel} for in-bound messages
+     * 
+     * @throws IllegalStateException if the Connection Type is
+     *             {@link MqttClientConnectionType#PUBLISHER}
+     * @throws IllegalArgumentException if the {@code inboundMessageChannel} value is null
+     */
     public void setInboundMessageChannel(MessageChannel inboundMessageChannel)
     {
         if (MqttClientConnectionType.PUBLISHER == connectionType)
         {
             throw new IllegalStateException(String.format(
-                "Client ID '%s' is setup as a PUBLISHER and cannot receive messages from the Broker!",
+                "Client ID %s is setup as a PUBLISHER and cannot receive messages from the Broker!",
                 getClientId()));
         }
         Assert.notNull(inboundMessageChannel, "'inboundMessageChannel' must be set!");
         this.inboundMessageChannel = inboundMessageChannel;
     }
 
+    /**
+     * Sets a {@link ReconnectService} and {@link TaskScheduler} that will be used to reconnect upon
+     * a connection lost or failure event.
+     * <p>
+     * If either the {@code reconnectionService} or {@code taskScheduler} values are null, a
+     * reconnection attempt will not be made.
+     * 
+     * @param reconnectService a {@link ReconnectService} value
+     * @param taskScheduler a {@link TaskScheduler} value
+     */
     public void setReconnectDetails(ReconnectService reconnectService, TaskScheduler taskScheduler)
     {
         this.reconnectService = reconnectService;

@@ -15,9 +15,28 @@ package com.github.christophersmith.summer.mqtt.core.service;
 
 import java.util.Date;
 
+/**
+ * Enables the {@link MqttClientService} to reconnect, upon a lost connection, to the Broker.
+ */
 public interface ReconnectService
 {
+    /**
+     * This method is called when the {@link MqttClientService} makes or loses a connection, or has
+     * a connection failure.
+     * <p>
+     * Calls to this method can useful for resetting any incrementer for the determining the Next
+     * Reconnect Date.
+     * 
+     * @param successful true or false
+     */
     void connected(boolean successful);
 
+    /**
+     * Returns the {@link Date} that the next reconnection attempt should be made.
+     * <p>
+     * If a null value is returned by this method, a reconnect attempt will not be made.
+     * 
+     * @return a {@link Date} value
+     */
     Date getNextReconnectionDate();
 }

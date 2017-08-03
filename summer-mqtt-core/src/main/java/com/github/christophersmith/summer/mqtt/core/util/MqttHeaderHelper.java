@@ -25,11 +25,29 @@ import com.github.christophersmith.summer.mqtt.core.MqttQualityOfService;
 public final class MqttHeaderHelper
 {
     private static final Logger LOG            = LoggerFactory.getLogger(MqttHeaderHelper.class);
+    /**
+     * 
+     */
     public static final String  DUPLICATE      = "mqtt_duplicate";
+    /**
+     * 
+     */
     public static final String  ID             = "mqtt_id";
+    /**
+     * 
+     */
     public static final String  QOS            = "mqtt_qos";
+    /**
+     * 
+     */
     public static final String  RETAINED       = "mqtt_retained";
+    /**
+     * 
+     */
     public static final String  TOPIC          = "mqtt_topic";
+    /**
+     * 
+     */
     public static final String  CORRELATION_ID = "mqtt_correlation_id";
 
     /**
@@ -101,6 +119,11 @@ public final class MqttHeaderHelper
         return retained;
     }
 
+    /**
+     * 
+     * @param message
+     * @return
+     */
     public static String getCorrelationIdHeaderValue(Message<?> message)
     {
         String correlationId = null;

@@ -35,6 +35,8 @@ public class MqttMessageDeliveredEvent extends MqttMessageStatusEvent
      * @param clientId the Client ID value
      * @param messageIdentifier the Message Identifier
      * @param source the {@link Object} that published this event
+     * 
+     * @throws IllegalArgumentException if the {@code clientId} is null or empty
      */
     public MqttMessageDeliveredEvent(String clientId, int messageIdentifier, Object source)
     {

@@ -13,6 +13,8 @@
  */
 package com.github.christophersmith.summer.mqtt.paho.service;
 
+import java.util.Date;
+
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
@@ -102,7 +104,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
                     qualityOfService.getLevelIdentifier(), retained);
                 mqttClientEventPublisher.publishMessagePublishedEvent(getClientId(),
                     token.getMessageId(), MqttHeaderHelper.getCorrelationIdHeaderValue(message),
-                    applicationEventPublisher);
+                    applicationEventPublisher, this);
             }
             else
             {
@@ -155,7 +157,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
             }
             mqttClientEventPublisher.publishConnectedEvent(getClientId(), getConnectedServerUri(),
                 TopicSubscriptionHelper.getSubscribedTopicFilters(topicSubscriptions),
-                applicationEventPublisher);
+                applicationEventPublisher, this);
             publishConnectionStatus(true);
             LOG.info(String.format("Client ID %s is connected to Broker %s with the topic(s): [%s]",
                 getClientId(), getConnectedServerUri(), StringUtils.arrayToCommaDelimitedString(
@@ -318,7 +320,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
                     mqttClient.disconnect()
                         .waitForCompletion(mqttClientConfiguration.getDisconnectWaitMilliseconds());
                     mqttClientEventPublisher.publishDisconnectedEvent(getClientId(),
-                        applicationEventPublisher);
+                        applicationEventPublisher, this);
                     LOG.info(String.format("Client ID %s is stopped.", getClientId()));
                 }
                 catch (MqttException ex)
@@ -331,7 +333,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
                                 mqttClientConfiguration.getDisconnectWaitMilliseconds());
                         }
                         mqttClientEventPublisher.publishDisconnectedEvent(getClientId(),
-                            applicationEventPublisher);
+                            applicationEventPublisher, this);
                         LOG.info(String.format("Client ID %s is stopped.", getClientId()));
                     }
                     catch (MqttException e)
@@ -386,7 +388,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
             reentrantLock.unlock();
         }
         mqttClientEventPublisher.publishConnectionLostEvent(getClientId(), isAutoReconnect(),
-            applicationEventPublisher);
+            applicationEventPublisher, this);
         scheduleReconnect();
     }
 
@@ -394,7 +396,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
     public void deliveryComplete(IMqttDeliveryToken token)
     {
         mqttClientEventPublisher.publishMessageDeliveredEvent(getClientId(), token.getMessageId(),
-            applicationEventPublisher);
+            applicationEventPublisher, this);
     }
 
     @Override
@@ -470,7 +472,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
                         qualityOfService.getLevelIdentifier(), mqttClientConfiguration
                             .getMqttClientConnectionStatusPublisher().isStatusMessageRetained());
                     mqttClientEventPublisher.publishMessagePublishedEvent(getClientId(),
-                        token.getMessageId(), null, applicationEventPublisher);
+                        token.getMessageId(), null, applicationEventPublisher, this);
                 }
                 catch (MqttException ex)
                 {
@@ -492,16 +494,26 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
         else if (reconnectService != null
             && taskScheduler != null)
         {
-            firstStartOccurred = true;
-            scheduledFuture = taskScheduler.schedule(new Runnable()
+            Date nextReconnectDate = reconnectService.getNextReconnectionDate();
+            if (nextReconnectDate != null)
             {
-                @Override
-                public void run()
+                firstStartOccurred = true;
+                scheduledFuture = taskScheduler.schedule(new Runnable()
                 {
-                    start();
-                }
-            }, reconnectService.getNextReconnectionDate());
-            LOG.info(String.format("Client ID %s is scheduled to reconnect.", getClientId()));
+                    @Override
+                    public void run()
+                    {
+                        start();
+                    }
+                }, nextReconnectDate);
+                LOG.info(String.format("Client ID %s is scheduled to reconnect.", getClientId()));
+            }
+            else
+            {
+                LOG.warn(String.format(
+                    "Client ID %s was not scheuled to reconnect because the Next Reconnect Date was null.",
+                    getClientId()));
+            }
         }
         else
         {
@@ -513,7 +525,11 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
     public void onFailure(IMqttToken token, Throwable throwable)
     {
         mqttClientEventPublisher.publishConnectionFailureEvent(getClientId(), isAutoReconnect(),
-            throwable, applicationEventPublisher);
+            throwable, applicationEventPublisher, this);
+        if (reconnectService != null)
+        {
+            reconnectService.connected(false);
+        }
     }
 
     @Override

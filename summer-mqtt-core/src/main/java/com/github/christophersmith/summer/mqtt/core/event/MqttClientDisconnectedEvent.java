@@ -33,6 +33,8 @@ public class MqttClientDisconnectedEvent extends MqttConnectionStatusEvent
      * 
      * @param clientId the Client ID value
      * @param source the {@link Object} that published this event
+     * 
+     * @throws IllegalArgumentException if the {@code clientId} is null or empty
      */
     public MqttClientDisconnectedEvent(String clientId, Object source)
     {

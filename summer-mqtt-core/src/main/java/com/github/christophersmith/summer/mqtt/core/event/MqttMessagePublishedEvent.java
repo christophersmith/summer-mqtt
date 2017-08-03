@@ -38,6 +38,8 @@ public class MqttMessagePublishedEvent extends MqttMessageStatusEvent
      * @param messageIdentifier the Message Identifier
      * @param correlationId the Correlation ID
      * @param source the {@link Object} that published this event
+     * 
+     * @throws IllegalArgumentException if the {@code clientId} is null or empty
      */
     public MqttMessagePublishedEvent(String clientId, int messageIdentifier, String correlationId,
         Object source)

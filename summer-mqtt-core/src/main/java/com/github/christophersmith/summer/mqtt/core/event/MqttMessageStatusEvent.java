@@ -31,6 +31,8 @@ public class MqttMessageStatusEvent extends MqttStatusEvent
      * 
      * @param clientId the Client ID value
      * @param source the {@link Object} that published this event
+     * 
+     * @throws IllegalArgumentException if the {@code clientId} is null or empty
      */
     public MqttMessageStatusEvent(String clientId, Object source)
     {

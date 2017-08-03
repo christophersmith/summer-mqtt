@@ -37,6 +37,8 @@ public class MqttClientConnectionFailureEvent extends MqttConnectionStatusEvent
      * @param autoReconnect whether the Client will automatically reconnect
      * @param throwable the originating {@link Throwable}
      * @param source the {@link Object} that published this event
+     * 
+     * @throws IllegalArgumentException if the {@code clientId} is null or empty
      */
     public MqttClientConnectionFailureEvent(String clientId, boolean autoReconnect,
         Throwable throwable, Object source)

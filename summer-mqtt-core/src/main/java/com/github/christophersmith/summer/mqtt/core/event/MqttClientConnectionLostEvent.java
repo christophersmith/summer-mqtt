@@ -35,6 +35,8 @@ public class MqttClientConnectionLostEvent extends MqttConnectionStatusEvent
      * @param clientId the Client ID value
      * @param autoReconnect whether the Client will automatically reconnect
      * @param source the {@link Object} that published this event
+     * 
+     * @throws IllegalArgumentException if the {@code clientId} is null or empty
      */
     public MqttClientConnectionLostEvent(String clientId, boolean autoReconnect, Object source)
     {
