@@ -22,7 +22,8 @@ import org.springframework.util.StringUtils;
 import com.github.christophersmith.summer.mqtt.core.TopicSubscription;
 
 /**
- * A {@link TopicSubscription} utility class that provides common functionality.
+ * A {@link TopicSubscription} utility class that provides common functionality for dealing with
+ * Topics.
  */
 public final class TopicSubscriptionHelper
 {
@@ -30,10 +31,11 @@ public final class TopicSubscriptionHelper
      * Finds the {@link TopicSubscription} object from the {@code topicSubscriptions} list that
      * matches the {@code topicFilter}.
      * <p>
-     * The search on the {@code topicFilter} is case-sensitive.
+     * The search on the {@code topicFilter} is case-sensitive. If a matching
+     * {@link TopicSubscription} value could not be found, a null value will be returned.
      * 
-     * @param topicFilter
-     * @param topicSubscriptions
+     * @param topicFilter the Topic Filter to search for
+     * @param topicSubscriptions a {@link List} of {@link TopicSubscription} objects for search
      * 
      * @return a {@link TopicSubscription} object, or null if not found
      */
@@ -56,6 +58,12 @@ public final class TopicSubscriptionHelper
         return record;
     }
 
+    /**
+     * Returns a {@link String[]} of the Topic Filters that have been subscribed to.
+     * 
+     * @param topicSubscriptions a {@link List} value
+     * @return a {@link String[]} of the Topic Filters
+     */
     public static String[] getSubscribedTopicFilters(List<TopicSubscription> topicSubscriptions)
     {
         List<String> records = new ArrayList<String>();
@@ -72,6 +80,11 @@ public final class TopicSubscriptionHelper
         return records.toArray(new String[records.size()]);
     }
 
+    /**
+     * Marks all of the {@link TopicSubscription} objects as unsubscribed.
+     * 
+     * @param topicSubscriptions a {@link List} of {@link TopicSubscription} objects to process
+     */
     public static void markUnsubscribed(List<TopicSubscription> topicSubscriptions)
     {
         if (!CollectionUtils.isEmpty(topicSubscriptions))

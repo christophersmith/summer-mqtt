@@ -57,11 +57,21 @@ public class MqttHeaderHelperTest
     public void testRetainedHeader()
     {
         Assert.assertFalse(MqttHeaderHelper.getRetainedHeaderValue(null));
-        MessageBuilder<String> builder = MessageBuilder.withPayload("See retainer header");
+        MessageBuilder<String> builder = MessageBuilder.withPayload("See retained header");
         Assert.assertFalse(MqttHeaderHelper.getRetainedHeaderValue(builder.build()));
         builder.setHeader(MqttHeaderHelper.RETAINED, "foo");
         Assert.assertFalse(MqttHeaderHelper.getRetainedHeaderValue(builder.build()));
         builder.setHeader(MqttHeaderHelper.RETAINED, true);
         Assert.assertTrue(MqttHeaderHelper.getRetainedHeaderValue(builder.build()));
+    }
+
+    @Test
+    public void testCorrelationIdHeader()
+    {
+        Assert.assertNull(MqttHeaderHelper.getCorrelationIdHeaderValue(null));
+        MessageBuilder<String> builder = MessageBuilder.withPayload("See Correlation ID header");
+        Assert.assertNull(MqttHeaderHelper.getCorrelationIdHeaderValue(builder.build()));
+        builder.setHeader(MqttHeaderHelper.CORRELATION_ID, "foo");
+        Assert.assertSame("foo", MqttHeaderHelper.getCorrelationIdHeaderValue(builder.build()));
     }
 }
