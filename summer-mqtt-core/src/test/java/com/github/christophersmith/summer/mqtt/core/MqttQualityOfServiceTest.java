@@ -24,6 +24,7 @@ public final class MqttQualityOfServiceTest
         int levelIdentifier = -1;
         Assert.assertEquals(MqttQualityOfService.QOS_0,
             MqttQualityOfService.findByLevelIdentifier(levelIdentifier));
+        Assert.assertEquals(MqttQualityOfService.QOS_2, MqttQualityOfService.valueOf("QOS_2"));
     }
 
     @Test

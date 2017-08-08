@@ -32,6 +32,7 @@ public class TopicSubscriptionHelperTest
     @Before
     public void initialize()
     {
+        new TopicSubscriptionHelper();
         topicSubscriptions.clear();
         topicSubscriptions.add(new TopicSubscription(TOPIC_FILTER_1, MqttQualityOfService.QOS_0));
         topicSubscriptions.add(new TopicSubscription(TOPIC_FILTER_2, MqttQualityOfService.QOS_0));

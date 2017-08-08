@@ -27,7 +27,7 @@ public final class TopicSubscriptionTest
     public ExpectedException    thrown       = ExpectedException.none();
 
     @Test
-    public void testInvalidTopic() throws IllegalArgumentException
+    public void testInvalidTopic()
     {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("'topicFilter' must be set!");
@@ -35,7 +35,7 @@ public final class TopicSubscriptionTest
     }
 
     @Test
-    public void testInvalidQualityOfService() throws IllegalArgumentException
+    public void testInvalidQualityOfService()
     {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("'qualityOfService' must be set!");

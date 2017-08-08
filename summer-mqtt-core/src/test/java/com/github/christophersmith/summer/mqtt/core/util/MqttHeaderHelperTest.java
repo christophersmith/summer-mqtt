@@ -24,6 +24,12 @@ public class MqttHeaderHelperTest
     private static final String TOPIC = "status/client";
 
     @Test
+    public void createDefaultInstance()
+    {
+        new MqttHeaderHelper();
+    }
+
+    @Test
     public void testTopicHeader()
     {
         Assert.assertNull(MqttHeaderHelper.getTopicHeaderValue(null));
