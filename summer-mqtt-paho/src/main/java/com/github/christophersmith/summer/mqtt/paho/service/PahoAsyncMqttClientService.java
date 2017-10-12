@@ -27,6 +27,7 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.Assert;
@@ -35,11 +36,19 @@ import org.springframework.util.StringUtils;
 import com.github.christophersmith.summer.mqtt.core.MqttClientConnectionType;
 import com.github.christophersmith.summer.mqtt.core.MqttQualityOfService;
 import com.github.christophersmith.summer.mqtt.core.TopicSubscription;
+import com.github.christophersmith.summer.mqtt.core.event.MqttClientConnectionFailureEvent;
+import com.github.christophersmith.summer.mqtt.core.event.MqttClientConnectionLostEvent;
+import com.github.christophersmith.summer.mqtt.core.event.MqttMessageDeliveredEvent;
 import com.github.christophersmith.summer.mqtt.core.service.AbstractMqttClientService;
 import com.github.christophersmith.summer.mqtt.core.service.MqttClientService;
+import com.github.christophersmith.summer.mqtt.core.service.ReconnectService;
 import com.github.christophersmith.summer.mqtt.core.util.MqttHeaderHelper;
 import com.github.christophersmith.summer.mqtt.core.util.TopicSubscriptionHelper;
 
+/**
+ * This is a Paho Asynchronous MQTT Client Service implementation that allows you configure specific
+ * features of the underlying Java Paho MQTT Client.
+ */
 public final class PahoAsyncMqttClientService extends AbstractMqttClientService
     implements MqttClientService, MqttCallbackExtended, IMqttActionListener
 {
@@ -49,6 +58,17 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
     private transient final MqttAsyncClient       mqttClient;
     private transient final MqttConnectOptions    mqttConnectOptions = new MqttConnectOptions();
 
+    /**
+     * Default constructor
+     * 
+     * @param serverUri the Server URI to connect to
+     * @param clientId the Client ID to connect as
+     * @param connectionType the {@link MqttClientConnectType} this instance will be used as
+     * @param clientPersistence
+     * @throws IllegalArgumentException if the {@code serverUri} is blank or null, the
+     *             {@code clientId} is blank or null or if the {@code connectionType} value is null
+     * @throws MqttException if the underlying {@link MqttAsyncClient} instance cannot be created
+     */
     public PahoAsyncMqttClientService(final String serverUri, final String clientId,
         final MqttClientConnectionType connectionType,
         final MqttClientPersistence clientPersistence)
@@ -63,6 +83,12 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
     }
 
     @Override
+    /**
+     * TODO
+     * 
+     * @param message
+     * @throws MessagingException
+     */
     public void handleMessage(Message<?> message) throws MessagingException
     {
         if (MqttClientConnectionType.SUBSCRIBER == connectionType)
@@ -78,7 +104,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
             {
                 String topic = MqttHeaderHelper.getTopicHeaderValue(message);
                 byte[] payload = null;
-                // TODO: really need to use a message converter
+                // TODO: really need to use a payload converter
                 if (message.getPayload() != null
                     && message.getPayload() instanceof byte[])
                 {
@@ -137,7 +163,8 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
             if (!mqttClient.isConnected())
             {
                 mqttClient.connect(mqttConnectOptions, null, this)
-                    .waitForCompletion(mqttConnectOptions.getConnectionTimeout());
+                    .waitForCompletion(mqttConnectOptions.getConnectionTimeout()
+                        * 1000);
             }
             if (mqttClient.isConnected()
                 && topicSubscriptions.size() > 0)
@@ -155,25 +182,30 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
                     }
                 }
             }
-            mqttClientEventPublisher.publishConnectedEvent(getClientId(), getConnectedServerUri(),
-                TopicSubscriptionHelper.getSubscribedTopicFilters(topicSubscriptions),
-                applicationEventPublisher, this);
-            publishConnectionStatus(true);
-            LOG.info(String.format("Client ID %s is connected to Broker %s with the topic(s): [%s]",
-                getClientId(), getConnectedServerUri(), StringUtils.arrayToCommaDelimitedString(
-                    TopicSubscriptionHelper.getSubscribedTopicFilters(topicSubscriptions))));
-            started = true;
-            firstStartOccurred = true;
-            successful = true;
-            if (reconnectService != null)
+            if (mqttClient.isConnected())
             {
-                reconnectService.connected(true);
+                mqttClientEventPublisher.publishConnectedEvent(getClientId(),
+                    getConnectedServerUri(),
+                    TopicSubscriptionHelper.getSubscribedTopicFilters(topicSubscriptions),
+                    applicationEventPublisher, this);
+                publishConnectionStatus(true);
+                LOG.info(String.format(
+                    "Client ID %s is connected to Broker %s with the topic(s): [%s]", getClientId(),
+                    getConnectedServerUri(), StringUtils.arrayToCommaDelimitedString(
+                        TopicSubscriptionHelper.getSubscribedTopicFilters(topicSubscriptions))));
+                started = true;
+                firstStartOccurred = true;
+                successful = true;
+                if (reconnectService != null)
+                {
+                    reconnectService.connected(true);
+                }
             }
         }
         catch (MqttException ex)
         {
             LOG.error(String.format("Client ID %s encountered an issue and could not be started.",
-                getClientId()));
+                getClientId()), ex);
             scheduleReconnect();
         }
         finally
@@ -312,6 +344,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
         reentrantLock.lock();
         try
         {
+            TopicSubscriptionHelper.markUnsubscribed(topicSubscriptions);
             if (mqttClient.isConnected())
             {
                 publishConnectionStatus(false);
@@ -373,6 +406,12 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
         }
     }
 
+    /**
+     * Overridden from the {@link MqttCallbackExtended#connectionLost(Throwable)} method.
+     * <p>
+     * Marks all {@link TopicSubscription} instances as unsubscribed and attempts to publish a
+     * {@link MqttClientConnectionLostEvent} message.
+     */
     @Override
     public void connectionLost(Throwable throwable)
     {
@@ -392,6 +431,11 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
         scheduleReconnect();
     }
 
+    /**
+     * Overridden from the {@link MqttCallbackExtended#deliveryComplete(IMqttDeliveryToken)} method.
+     * <p>
+     * Attempts to publish a {@link MqttMessageDeliveredEvent} message.
+     */
     @Override
     public void deliveryComplete(IMqttDeliveryToken token)
     {
@@ -399,6 +443,12 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
             applicationEventPublisher, this);
     }
 
+    /**
+     * Overridden from the {@link MqttCallbackExtended#messageArrived(String, MqttMessage)} method.
+     * <p>
+     * If the {@code inboundMessageChannel} is not null, the received message is sent to this
+     * {@link MessageChannel}.
+     */
     @Override
     public void messageArrived(String topic, MqttMessage message) throws Exception
     {
@@ -423,11 +473,21 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
         }
     }
 
+    /**
+     * Returns the {@link MqttConnectOptions} that will be used for this instance.
+     * 
+     * @return the {@link MqttConnectOptions} to be used for this instance
+     */
     public MqttConnectOptions getMqttConnectOptions()
     {
         return mqttConnectOptions;
     }
 
+    /**
+     * Overridden from the {@link MqttCallbackExtended#connectComplete(boolean, String)} method.
+     * <p>
+     * If the connection was made from a reconnect, the {@link #start()} method is called.
+     */
     @Override
     public void connectComplete(boolean reconnect, String serverUri)
     {
@@ -521,6 +581,12 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
         }
     }
 
+    /**
+     * Overridden to publish a {@link MqttClientConnectionFailureEvent} message.
+     * <p>
+     * If a {@link ReconnectService} instance is defined, the
+     * {@link ReconnectService#connected(boolean)} method is called with a value of false.
+     */
     @Override
     public void onFailure(IMqttToken token, Throwable throwable)
     {

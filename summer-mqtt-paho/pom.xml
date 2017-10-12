@@ -11,6 +11,13 @@
 	<artifactId>summer-mqtt-paho</artifactId>
 	<name>Summer MQTT Paho Client Implementation Project</name>
 	<url>https://github.com/christophersmith/summer-mqtt</url>
+	<repositories>
+    	<repository>
+        	<id>plugins-release</id>
+        	<name>Spring Plugins Repository</name>
+        	<url>http://repo.spring.io/plugins-release/</url>
+    	</repository>
+	</repositories>
 	<dependencies>
 		<dependency>
 			<groupId>com.github.christophersmith</groupId>
@@ -21,6 +28,12 @@
 			<groupId>org.eclipse.paho</groupId>
 			<artifactId>org.eclipse.paho.client.mqttv3</artifactId>
 			<version>${eclipse.paho.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.github.netcrusherorg</groupId>
+			<artifactId>netcrusher-core</artifactId>
+			<version>0.10</version>
+			<scope>test</scope>
 		</dependency>
 	</dependencies>
 </project>
