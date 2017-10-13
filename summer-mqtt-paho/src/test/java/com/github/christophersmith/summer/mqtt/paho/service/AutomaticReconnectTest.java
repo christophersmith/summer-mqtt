@@ -16,6 +16,8 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.context.support.StaticApplicationContext;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.support.ExecutorSubscribableChannel;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ConcurrentTaskScheduler;
 
 import com.github.christophersmith.summer.mqtt.core.MqttClientConnectionType;
 import com.github.christophersmith.summer.mqtt.core.MqttQualityOfService;
@@ -24,6 +26,7 @@ import com.github.christophersmith.summer.mqtt.core.event.MqttClientConnectionFa
 import com.github.christophersmith.summer.mqtt.core.event.MqttClientConnectionLostEvent;
 import com.github.christophersmith.summer.mqtt.core.event.MqttClientDisconnectedEvent;
 import com.github.christophersmith.summer.mqtt.core.event.MqttConnectionStatusEvent;
+import com.github.christophersmith.summer.mqtt.paho.service.util.DefaultReconnectService;
 
 public class AutomaticReconnectTest implements ApplicationListener<MqttConnectionStatusEvent>
 {
@@ -260,6 +263,109 @@ public class AutomaticReconnectTest implements ApplicationListener<MqttConnectio
         applicationContext.close();
     }
 
+    @Test
+    public void testMqttConnectOptionsAutomaticReconnectTrueServerUnavailableAtStartup()
+        throws MqttException, InterruptedException
+    {
+        StaticApplicationContext applicationContext = getStaticApplicationContext();
+        CRUSHER_PROXY.close();
+        MessageChannel inboundMessageChannel = new ExecutorSubscribableChannel();
+        PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
+            String.format(BROKER_URI_FORMAT, LOCAL_HOST_NAME, String.valueOf(LOCAL_HOST_PORT)),
+            CLIENT_ID, MqttClientConnectionType.PUBSUB, null);
+        service.setApplicationEventPublisher(applicationContext);
+        service.setInboundMessageChannel(inboundMessageChannel);
+        service.subscribe(String.format("client/%s", CLIENT_ID), MqttQualityOfService.QOS_0);
+        service.getMqttConnectOptions().setCleanSession(true);
+        service.getMqttConnectOptions().setAutomaticReconnect(true);
+        Assert.assertFalse(service.start());
+        Assert.assertFalse(service.isConnected());
+        Assert.assertFalse(service.isStarted());
+        Thread.sleep(1000);
+        CRUSHER_PROXY.open();
+        Assert.assertFalse(service.isConnected());
+        Assert.assertFalse(service.isStarted());
+        Thread.sleep(1100);
+        Assert.assertFalse(service.isStarted());
+        Assert.assertFalse(service.isConnected());
+        Thread.sleep(1100);
+        Assert.assertFalse(service.isConnected());
+        Assert.assertFalse(service.isStarted());
+        Assert.assertEquals(0, clientConnectedCount.get());
+        Assert.assertEquals(0, clientDisconnectedCount.get());
+        Assert.assertEquals(0, clientLostConnectionCount.get());
+        Assert.assertEquals(1, clientFailedConnectionCount.get());
+        service.stop();
+        service.close();
+        applicationContext.close();
+    }
+
+    @Test
+    public void testReconnectDetailsSetServerAvailableAtStartup()
+        throws MqttException, InterruptedException
+    {
+        StaticApplicationContext applicationContext = getStaticApplicationContext();
+        TaskScheduler taskScheduler = new ConcurrentTaskScheduler();
+        MessageChannel inboundMessageChannel = new ExecutorSubscribableChannel();
+        PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
+            String.format(BROKER_URI_FORMAT, LOCAL_HOST_NAME, String.valueOf(LOCAL_HOST_PORT)),
+            CLIENT_ID, MqttClientConnectionType.PUBSUB, null);
+        service.setApplicationEventPublisher(applicationContext);
+        service.setInboundMessageChannel(inboundMessageChannel);
+        service.subscribe(String.format("client/%s", CLIENT_ID), MqttQualityOfService.QOS_0);
+        service.getMqttConnectOptions().setCleanSession(true);
+        service.setReconnectDetails(new DefaultReconnectService(), taskScheduler);
+        Assert.assertTrue(service.start());
+        Assert.assertTrue(service.isConnected());
+        Assert.assertTrue(service.isStarted());
+        // simulate a lost connection
+        CRUSHER_PROXY.reopen();
+        Assert.assertFalse(service.isStarted());
+        Assert.assertFalse(service.isConnected());
+        Thread.sleep(1100);
+        Assert.assertTrue(service.isStarted());
+        Assert.assertTrue(service.isConnected());
+        Assert.assertEquals(2, clientConnectedCount.get());
+        Assert.assertEquals(0, clientDisconnectedCount.get());
+        Assert.assertEquals(1, clientLostConnectionCount.get());
+        Assert.assertEquals(0, clientFailedConnectionCount.get());
+        service.stop();
+        service.close();
+        applicationContext.close();
+    }
+
+    @Test
+    public void testReconnectDetailsSetServerUnavailableAtStartup()
+        throws MqttException, InterruptedException
+    {
+        StaticApplicationContext applicationContext = getStaticApplicationContext();
+        CRUSHER_PROXY.close();
+        TaskScheduler taskScheduler = new ConcurrentTaskScheduler();
+        MessageChannel inboundMessageChannel = new ExecutorSubscribableChannel();
+        PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
+            String.format(BROKER_URI_FORMAT, LOCAL_HOST_NAME, String.valueOf(LOCAL_HOST_PORT)),
+            CLIENT_ID, MqttClientConnectionType.PUBSUB, null);
+        service.setApplicationEventPublisher(applicationContext);
+        service.setInboundMessageChannel(inboundMessageChannel);
+        service.subscribe(String.format("client/%s", CLIENT_ID), MqttQualityOfService.QOS_0);
+        service.getMqttConnectOptions().setCleanSession(true);
+        service.setReconnectDetails(new DefaultReconnectService(), taskScheduler);
+        Assert.assertFalse(service.start());
+        Assert.assertFalse(service.isConnected());
+        Assert.assertFalse(service.isStarted());
+        CRUSHER_PROXY.open();
+        Thread.sleep(3100);
+        Assert.assertTrue(service.isConnected());
+        Assert.assertTrue(service.isStarted());
+        Assert.assertEquals(1, clientConnectedCount.get());
+        Assert.assertEquals(0, clientDisconnectedCount.get());
+        Assert.assertEquals(0, clientLostConnectionCount.get());
+        Assert.assertEquals(1, clientFailedConnectionCount.get());
+        service.stop();
+        service.close();
+        applicationContext.close();
+    }
+
     @Override
     public void onApplicationEvent(MqttConnectionStatusEvent event)
     {
@@ -280,63 +386,4 @@ public class AutomaticReconnectTest implements ApplicationListener<MqttConnectio
             clientFailedConnectionCount.incrementAndGet();
         }
     }
-
-    /*
-     * @Test public void testMqttConnectOptionsAutomaticReconnectTrueServerUnavailableAtStartup()
-     * throws MqttException, InterruptedException { MessageChannel inboundMessageChannel = new
-     * ExecutorSubscribableChannel(); PahoAsyncMqttClientService service = new
-     * PahoAsyncMqttClientService( String.format(SERVER_URI_FORMAT,
-     * String.valueOf(proxy.getLocalPort())), CLIENT_ID, MqttClientConnectionType.PUBSUB, null);
-     * service.setInboundMessageChannel(inboundMessageChannel);
-     * service.subscribe(String.format("client/%s", CLIENT_ID), MqttQualityOfService.QOS_0);
-     * service.getMqttConnectOptions().setCleanSession(true);
-     * service.getMqttConnectOptions().setAutomaticReconnect(true); proxy.disableProxy();
-     * Assert.assertFalse(service.start()); Assert.assertFalse(service.isConnected());
-     * Assert.assertFalse(service.isStarted()); proxy.enableProxy(); Thread.sleep(1100);
-     * Assert.assertFalse(service.isConnected()); Assert.assertFalse(service.isStarted());
-     * proxy.disableProxy(); Assert.assertFalse(service.isStarted());
-     * Assert.assertFalse(service.isConnected()); proxy.enableProxy(); Thread.sleep(1100);
-     * Assert.assertFalse(service.isConnected()); Assert.assertFalse(service.isStarted());
-     * service.stop(); service.close(); }
-     */
-
-    /*
-     * @Test public void testReconnectDetailsSetServerAvailableAtStartup() throws MqttException,
-     * InterruptedException { TaskScheduler taskScheduler = new ConcurrentTaskScheduler();
-     * MessageChannel inboundMessageChannel = new ExecutorSubscribableChannel();
-     * PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
-     * String.format(SERVER_URI_FORMAT, String.valueOf(proxy.getLocalPort())), CLIENT_ID,
-     * MqttClientConnectionType.PUBSUB, null);
-     * service.setInboundMessageChannel(inboundMessageChannel);
-     * service.subscribe(String.format("client/%s", CLIENT_ID), MqttQualityOfService.QOS_0);
-     * service.getMqttConnectOptions().setCleanSession(true); service.setReconnectDetails(new
-     * DefaultReconnectService(), taskScheduler); proxy.enableProxy();
-     * Assert.assertTrue(service.start()); Assert.assertTrue(service.isConnected());
-     * Assert.assertTrue(service.isStarted()); proxy.disableProxy();
-     * Assert.assertFalse(service.isStarted()); Assert.assertFalse(service.isConnected());
-     * proxy.enableProxy(); Thread.sleep(1100); Assert.assertFalse(service.isStarted());
-     * Assert.assertFalse(service.isConnected()); Thread.sleep(2000);
-     * Assert.assertTrue(service.isStarted()); Assert.assertTrue(service.isConnected());
-     * proxy.disableProxy(); Thread.sleep(1100); service.stop(); service.close(); }
-     */
-
-    /*
-     * @Test public void testReconnectDetailsSetServerUnavailableAtStartup() throws MqttException,
-     * InterruptedException { TaskScheduler taskScheduler = new ConcurrentTaskScheduler();
-     * MessageChannel inboundMessageChannel = new ExecutorSubscribableChannel();
-     * PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
-     * String.format(SERVER_URI_FORMAT, String.valueOf(proxy.getLocalPort())), CLIENT_ID,
-     * MqttClientConnectionType.PUBSUB, null);
-     * service.setInboundMessageChannel(inboundMessageChannel);
-     * service.subscribe(String.format("client/%s", CLIENT_ID), MqttQualityOfService.QOS_0);
-     * service.getMqttConnectOptions().setCleanSession(true); service.setReconnectDetails(new
-     * DefaultReconnectService(), taskScheduler); proxy.disableProxy();
-     * Assert.assertFalse(service.start()); Assert.assertFalse(service.isConnected());
-     * Assert.assertFalse(service.isStarted()); proxy.enableProxy(); Thread.sleep(3100);
-     * Assert.assertTrue(service.isConnected()); Assert.assertTrue(service.isStarted());
-     * proxy.disableProxy(); Assert.assertFalse(service.isStarted());
-     * Assert.assertFalse(service.isConnected()); proxy.enableProxy(); Thread.sleep(3100);
-     * Assert.assertTrue(service.isConnected()); Assert.assertTrue(service.isStarted());
-     * service.stop(); service.close(); }
-     */
 }

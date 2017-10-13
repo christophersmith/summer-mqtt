@@ -64,7 +64,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
      * @param serverUri the Server URI to connect to
      * @param clientId the Client ID to connect as
      * @param connectionType the {@link MqttClientConnectType} this instance will be used as
-     * @param clientPersistence
+     * @param clientPersistence TODO: add description
      * @throws IllegalArgumentException if the {@code serverUri} is blank or null, the
      *             {@code clientId} is blank or null or if the {@code connectionType} value is null
      * @throws MqttException if the underlying {@link MqttAsyncClient} instance cannot be created
