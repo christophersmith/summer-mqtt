@@ -3,7 +3,6 @@ package com.github.christophersmith.summer.mqtt.paho.service;
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.eclipse.paho.client.mqttv3.MqttAsyncClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.junit.AfterClass;
 import org.junit.Assert;
@@ -26,31 +25,26 @@ import com.github.christophersmith.summer.mqtt.core.event.MqttClientConnectionFa
 import com.github.christophersmith.summer.mqtt.core.event.MqttClientConnectionLostEvent;
 import com.github.christophersmith.summer.mqtt.core.event.MqttClientDisconnectedEvent;
 import com.github.christophersmith.summer.mqtt.core.event.MqttConnectionStatusEvent;
+import com.github.christophersmith.summer.mqtt.paho.service.util.BrokerHelper;
 import com.github.christophersmith.summer.mqtt.paho.service.util.DefaultReconnectService;
 
 public class AutomaticReconnectTest implements ApplicationListener<MqttConnectionStatusEvent>
 {
-    private static final String BROKER_URI_FORMAT           = "tcp://%s:%s";
-    private static final String LOCAL_HOST_NAME             = "localhost";
-    private static final int    LOCAL_HOST_PORT             = 10080;
-    private static final String BROKER_HOST_NAME            = "localhost";
-    // private static final String BROKER_HOST_NAME = "iot.eclipse.org";
-    private static final int    BROKER_PORT                 = 1883;
-    private static final String CLIENT_ID                   = MqttAsyncClient.generateClientId();
-    private static NioReactor   REACTOR;
-    private static TcpCrusher   CRUSHER_PROXY;
-    private AtomicInteger       clientConnectedCount        = new AtomicInteger(0);
-    private AtomicInteger       clientDisconnectedCount     = new AtomicInteger(0);
-    private AtomicInteger       clientLostConnectionCount   = new AtomicInteger(0);
-    private AtomicInteger       clientFailedConnectionCount = new AtomicInteger(0);
+    private static NioReactor REACTOR;
+    private static TcpCrusher CRUSHER_PROXY;
+    private AtomicInteger     clientConnectedCount        = new AtomicInteger(0);
+    private AtomicInteger     clientDisconnectedCount     = new AtomicInteger(0);
+    private AtomicInteger     clientLostConnectionCount   = new AtomicInteger(0);
+    private AtomicInteger     clientFailedConnectionCount = new AtomicInteger(0);
 
     @BeforeClass
     public static void initialize() throws IOException
     {
         REACTOR = new NioReactor();
         CRUSHER_PROXY = TcpCrusherBuilder.builder().withReactor(REACTOR)
-            .withBindAddress(LOCAL_HOST_NAME, LOCAL_HOST_PORT)
-            .withConnectAddress(BROKER_HOST_NAME, BROKER_PORT).buildAndOpen();
+            .withBindAddress(BrokerHelper.getProxyHostName(), BrokerHelper.getProxyPort())
+            .withConnectAddress(BrokerHelper.getBrokerHostName(), BrokerHelper.getBrokerPort())
+            .buildAndOpen();
     }
 
     @AfterClass
@@ -80,11 +74,12 @@ public class AutomaticReconnectTest implements ApplicationListener<MqttConnectio
         StaticApplicationContext applicationContext = getStaticApplicationContext();
         MessageChannel inboundMessageChannel = new ExecutorSubscribableChannel();
         PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
-            String.format(BROKER_URI_FORMAT, LOCAL_HOST_NAME, String.valueOf(LOCAL_HOST_PORT)),
-            CLIENT_ID, MqttClientConnectionType.PUBSUB, null);
+            BrokerHelper.getProxyUri(), BrokerHelper.getClientId(), MqttClientConnectionType.PUBSUB,
+            null);
         service.setApplicationEventPublisher(applicationContext);
         service.setInboundMessageChannel(inboundMessageChannel);
-        service.subscribe(String.format("client/%s", CLIENT_ID), MqttQualityOfService.QOS_0);
+        service.subscribe(String.format("client/%s", BrokerHelper.getClientId()),
+            MqttQualityOfService.QOS_0);
         service.getMqttConnectOptions().setCleanSession(true);
         Assert.assertTrue(service.start());
         Assert.assertTrue(service.isConnected());
@@ -105,11 +100,12 @@ public class AutomaticReconnectTest implements ApplicationListener<MqttConnectio
         StaticApplicationContext applicationContext = getStaticApplicationContext();
         MessageChannel inboundMessageChannel = new ExecutorSubscribableChannel();
         PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
-            String.format(BROKER_URI_FORMAT, LOCAL_HOST_NAME, String.valueOf(LOCAL_HOST_PORT)),
-            CLIENT_ID, MqttClientConnectionType.PUBSUB, null);
+            BrokerHelper.getProxyUri(), BrokerHelper.getClientId(), MqttClientConnectionType.PUBSUB,
+            null);
         service.setApplicationEventPublisher(applicationContext);
         service.setInboundMessageChannel(inboundMessageChannel);
-        service.subscribe(String.format("client/%s", CLIENT_ID), MqttQualityOfService.QOS_0);
+        service.subscribe(String.format("client/%s", BrokerHelper.getClientId()),
+            MqttQualityOfService.QOS_0);
         service.getMqttConnectOptions().setCleanSession(true);
         Assert.assertTrue(service.start());
         Assert.assertTrue(service.isConnected());
@@ -137,11 +133,12 @@ public class AutomaticReconnectTest implements ApplicationListener<MqttConnectio
         StaticApplicationContext applicationContext = getStaticApplicationContext();
         MessageChannel inboundMessageChannel = new ExecutorSubscribableChannel();
         PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
-            String.format(BROKER_URI_FORMAT, LOCAL_HOST_NAME, String.valueOf(LOCAL_HOST_PORT)),
-            CLIENT_ID, MqttClientConnectionType.PUBSUB, null);
+            BrokerHelper.getProxyUri(), BrokerHelper.getClientId(), MqttClientConnectionType.PUBSUB,
+            null);
         service.setApplicationEventPublisher(applicationContext);
         service.setInboundMessageChannel(inboundMessageChannel);
-        service.subscribe(String.format("client/%s", CLIENT_ID), MqttQualityOfService.QOS_0);
+        service.subscribe(String.format("client/%s", BrokerHelper.getClientId()),
+            MqttQualityOfService.QOS_0);
         service.getMqttConnectOptions().setCleanSession(true);
         service.getMqttConnectOptions().setAutomaticReconnect(false);
         Assert.assertTrue(service.start());
@@ -170,11 +167,12 @@ public class AutomaticReconnectTest implements ApplicationListener<MqttConnectio
         StaticApplicationContext applicationContext = getStaticApplicationContext();
         MessageChannel inboundMessageChannel = new ExecutorSubscribableChannel();
         PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
-            String.format(BROKER_URI_FORMAT, LOCAL_HOST_NAME, String.valueOf(LOCAL_HOST_PORT)),
-            CLIENT_ID, MqttClientConnectionType.PUBSUB, null);
+            BrokerHelper.getProxyUri(), BrokerHelper.getClientId(), MqttClientConnectionType.PUBSUB,
+            null);
         service.setApplicationEventPublisher(applicationContext);
         service.setInboundMessageChannel(inboundMessageChannel);
-        service.subscribe(String.format("client/%s", CLIENT_ID), MqttQualityOfService.QOS_0);
+        service.subscribe(String.format("client/%s", BrokerHelper.getClientId()),
+            MqttQualityOfService.QOS_0);
         service.getMqttConnectOptions().setCleanSession(true);
         service.getMqttConnectOptions().setAutomaticReconnect(true);
         Assert.assertTrue(service.start());
@@ -204,11 +202,12 @@ public class AutomaticReconnectTest implements ApplicationListener<MqttConnectio
         CRUSHER_PROXY.close();
         MessageChannel inboundMessageChannel = new ExecutorSubscribableChannel();
         PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
-            String.format(BROKER_URI_FORMAT, LOCAL_HOST_NAME, String.valueOf(LOCAL_HOST_PORT)),
-            CLIENT_ID, MqttClientConnectionType.PUBSUB, null);
+            BrokerHelper.getProxyUri(), BrokerHelper.getClientId(), MqttClientConnectionType.PUBSUB,
+            null);
         service.setApplicationEventPublisher(applicationContext);
         service.setInboundMessageChannel(inboundMessageChannel);
-        service.subscribe(String.format("client/%s", CLIENT_ID), MqttQualityOfService.QOS_0);
+        service.subscribe(String.format("client/%s", BrokerHelper.getClientId()),
+            MqttQualityOfService.QOS_0);
         service.getMqttConnectOptions().setCleanSession(true);
         Assert.assertFalse(service.start());
         Assert.assertFalse(service.isConnected());
@@ -237,11 +236,12 @@ public class AutomaticReconnectTest implements ApplicationListener<MqttConnectio
         CRUSHER_PROXY.close();
         MessageChannel inboundMessageChannel = new ExecutorSubscribableChannel();
         PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
-            String.format(BROKER_URI_FORMAT, LOCAL_HOST_NAME, String.valueOf(LOCAL_HOST_PORT)),
-            CLIENT_ID, MqttClientConnectionType.PUBSUB, null);
+            BrokerHelper.getProxyUri(), BrokerHelper.getClientId(), MqttClientConnectionType.PUBSUB,
+            null);
         service.setApplicationEventPublisher(applicationContext);
         service.setInboundMessageChannel(inboundMessageChannel);
-        service.subscribe(String.format("client/%s", CLIENT_ID), MqttQualityOfService.QOS_0);
+        service.subscribe(String.format("client/%s", BrokerHelper.getClientId()),
+            MqttQualityOfService.QOS_0);
         service.getMqttConnectOptions().setCleanSession(true);
         service.getMqttConnectOptions().setAutomaticReconnect(false);
         Assert.assertFalse(service.start());
@@ -271,11 +271,12 @@ public class AutomaticReconnectTest implements ApplicationListener<MqttConnectio
         CRUSHER_PROXY.close();
         MessageChannel inboundMessageChannel = new ExecutorSubscribableChannel();
         PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
-            String.format(BROKER_URI_FORMAT, LOCAL_HOST_NAME, String.valueOf(LOCAL_HOST_PORT)),
-            CLIENT_ID, MqttClientConnectionType.PUBSUB, null);
+            BrokerHelper.getProxyUri(), BrokerHelper.getClientId(), MqttClientConnectionType.PUBSUB,
+            null);
         service.setApplicationEventPublisher(applicationContext);
         service.setInboundMessageChannel(inboundMessageChannel);
-        service.subscribe(String.format("client/%s", CLIENT_ID), MqttQualityOfService.QOS_0);
+        service.subscribe(String.format("client/%s", BrokerHelper.getClientId()),
+            MqttQualityOfService.QOS_0);
         service.getMqttConnectOptions().setCleanSession(true);
         service.getMqttConnectOptions().setAutomaticReconnect(true);
         Assert.assertFalse(service.start());
@@ -308,11 +309,12 @@ public class AutomaticReconnectTest implements ApplicationListener<MqttConnectio
         TaskScheduler taskScheduler = new ConcurrentTaskScheduler();
         MessageChannel inboundMessageChannel = new ExecutorSubscribableChannel();
         PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
-            String.format(BROKER_URI_FORMAT, LOCAL_HOST_NAME, String.valueOf(LOCAL_HOST_PORT)),
-            CLIENT_ID, MqttClientConnectionType.PUBSUB, null);
+            BrokerHelper.getProxyUri(), BrokerHelper.getClientId(), MqttClientConnectionType.PUBSUB,
+            null);
         service.setApplicationEventPublisher(applicationContext);
         service.setInboundMessageChannel(inboundMessageChannel);
-        service.subscribe(String.format("client/%s", CLIENT_ID), MqttQualityOfService.QOS_0);
+        service.subscribe(String.format("client/%s", BrokerHelper.getClientId()),
+            MqttQualityOfService.QOS_0);
         service.getMqttConnectOptions().setCleanSession(true);
         service.setReconnectDetails(new DefaultReconnectService(), taskScheduler);
         Assert.assertTrue(service.start());
@@ -343,11 +345,12 @@ public class AutomaticReconnectTest implements ApplicationListener<MqttConnectio
         TaskScheduler taskScheduler = new ConcurrentTaskScheduler();
         MessageChannel inboundMessageChannel = new ExecutorSubscribableChannel();
         PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
-            String.format(BROKER_URI_FORMAT, LOCAL_HOST_NAME, String.valueOf(LOCAL_HOST_PORT)),
-            CLIENT_ID, MqttClientConnectionType.PUBSUB, null);
+            BrokerHelper.getProxyUri(), BrokerHelper.getClientId(), MqttClientConnectionType.PUBSUB,
+            null);
         service.setApplicationEventPublisher(applicationContext);
         service.setInboundMessageChannel(inboundMessageChannel);
-        service.subscribe(String.format("client/%s", CLIENT_ID), MqttQualityOfService.QOS_0);
+        service.subscribe(String.format("client/%s", BrokerHelper.getClientId()),
+            MqttQualityOfService.QOS_0);
         service.getMqttConnectOptions().setCleanSession(true);
         service.setReconnectDetails(new DefaultReconnectService(), taskScheduler);
         Assert.assertFalse(service.start());

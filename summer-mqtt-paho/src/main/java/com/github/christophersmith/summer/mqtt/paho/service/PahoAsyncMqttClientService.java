@@ -46,8 +46,8 @@ import com.github.christophersmith.summer.mqtt.core.util.MqttHeaderHelper;
 import com.github.christophersmith.summer.mqtt.core.util.TopicSubscriptionHelper;
 
 /**
- * This is a Paho Asynchronous MQTT Client Service implementation that allows you configure specific
- * features of the underlying Java Paho MQTT Client.
+ * This is a Paho Asynchronous MQTT Client Service implementation which allows you configure
+ * specific features of the underlying Java Paho MQTT Client.
  */
 public final class PahoAsyncMqttClientService extends AbstractMqttClientService
     implements MqttClientService, MqttCallbackExtended, IMqttActionListener
@@ -66,7 +66,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
      * @param connectionType the {@link MqttClientConnectType} this instance will be used as
      * @param clientPersistence TODO: add description
      * @throws IllegalArgumentException if the {@code serverUri} is blank or null, the
-     *             {@code clientId} is blank or null or if the {@code connectionType} value is null
+     *             {@code clientId} is blank or null, or if the {@code connectionType} value is null
      * @throws MqttException if the underlying {@link MqttAsyncClient} instance cannot be created
      */
     public PahoAsyncMqttClientService(final String serverUri, final String clientId,
@@ -84,10 +84,11 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
 
     @Override
     /**
-     * TODO
+     * Publishes a {@link Message} to the MQTT Broker.
      * 
-     * @param message
-     * @throws MessagingException
+     * @param message the {@link Message} to send
+     * @throws IllegalArgumentException if the {@code message} is null
+     * @throws MessagingException if the {@code message} could not be sent
      */
     public void handleMessage(Message<?> message) throws MessagingException
     {
@@ -98,6 +99,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
                     "Client ID %s is setup as a SUBSCRIBER and could not publish this message.",
                     getClientId()));
         }
+        Assert.notNull(message, "'message' must be set!");
         try
         {
             if (mqttClient.isConnected())
