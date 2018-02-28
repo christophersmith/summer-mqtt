@@ -63,8 +63,10 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
      * 
      * @param serverUri the Server URI to connect to
      * @param clientId the Client ID to connect as
-     * @param connectionType the {@link MqttClientConnectType} this instance will be used as
-     * @param clientPersistence TODO: add description
+     * @param connectionType the {@link MqttClientConnectType} used to define this instance's
+     *            connection behavior
+     * @param clientPersistence an optional {@link MqttClientPersistence} used to control how
+     *            messages that are yet delivered are persisted
      * @throws IllegalArgumentException if the {@code serverUri} is blank or null, the
      *             {@code clientId} is blank or null, or if the {@code connectionType} value is null
      * @throws MqttException if the underlying {@link MqttAsyncClient} instance cannot be created
@@ -299,7 +301,8 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
         if (MqttClientConnectionType.PUBLISHER == connectionType)
         {
             throw new IllegalStateException(String.format(
-                "Client ID %s is a PUBLISHER and cannot subscribe or unsubscribe.", getClientId()));
+                "Client ID %s is a PUBLISHER and cannot subscribe or unsubscribe from Topic Filters.",
+                getClientId()));
         }
         Assert.hasText(topicFilter, "'topicFilter' must be set!");
         reentrantLock.lock();
