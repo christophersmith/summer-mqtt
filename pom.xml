@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.christophersmith</groupId>
 	<artifactId>summer-mqtt</artifactId>
-	<version>1.0.0</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<name>Summer MQTT Parent Project</name>
 	<description>Summer MQTT is a MQTT Client wrapper service for Spring Framework, and is intended as a flexible alternate to using Spring Integration MQTT.</description>
