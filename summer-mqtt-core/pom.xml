@@ -6,10 +6,11 @@
 	<parent>
 		<groupId>com.github.christophersmith</groupId>
 		<artifactId>summer-mqtt</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>1.0.0</version>
 	</parent>
 	<artifactId>summer-mqtt-core</artifactId>
 	<name>Summer MQTT Core Project</name>
+	<description>Summer MQTT Core Project is a collection of common classes and utilities that will be used by Summer MQTT Client implementations, and serves as a Service layer to provide loose coupling.</description>
 	<url>https://github.com/christophersmith/summer-mqtt</url>
 	<dependencies>
 		<dependency>

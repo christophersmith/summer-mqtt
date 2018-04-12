@@ -63,8 +63,9 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
      * 
      * @param serverUri the Server URI to connect to
      * @param clientId the Client ID to connect as
-     * @param connectionType the {@link MqttClientConnectType} used to define this instance's
-     *            connection behavior
+     * @param connectionType the
+     *            {@link com.github.christophersmith.summer.mqtt.core.MqttClientConnectionType} used
+     *            to define this instance's connection behavior
      * @param clientPersistence an optional {@link MqttClientPersistence} used to control how
      *            messages that are yet delivered are persisted
      * @throws IllegalArgumentException if the {@code serverUri} is blank or null, the

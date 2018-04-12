@@ -15,4 +15,14 @@ So what's the difference?
 
 ## Project Status
 
-The Summer MQTT project is functional for use with the Asynchronous Paho MQTT Client. At this point, I'm finishing up Unit Tests and will begin writing up usage documentation soon.
+The latest release:
+
+```
+<dependency>
+	<groupId>com.github.christophersmith</groupId>
+	<artifactId>summer-mqtt-paho</artifactId>
+	<version>1.0.0</version>
+</dependency>
+```
+
+[Release Notes](RELEASE_NOTES.md)

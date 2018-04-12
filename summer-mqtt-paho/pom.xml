@@ -6,10 +6,11 @@
 	<parent>
 		<groupId>com.github.christophersmith</groupId>
 		<artifactId>summer-mqtt</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>1.0.0</version>
 	</parent>
 	<artifactId>summer-mqtt-paho</artifactId>
 	<name>Summer MQTT Paho Client Implementation Project</name>
+	<description>Summer MQTT Paho Client Implementation Project is an implementation that uses the Paho Java MQTT Client.</description>
 	<url>https://github.com/christophersmith/summer-mqtt</url>
 	<repositories>
     	<repository>
