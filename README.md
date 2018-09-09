@@ -26,3 +26,7 @@ The latest release:
 ```
 
 [Release Notes](RELEASE_NOTES.md)
+
+## Getting Started
+
+Check out the examples provided at: [https://github.com/christophersmith/summer-mqtt-samples](https://github.com/christophersmith/summer-mqtt-samples)
