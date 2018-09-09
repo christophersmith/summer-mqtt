@@ -29,4 +29,10 @@ The latest release:
 
 ## Getting Started
 
-Check out the examples provided at: [https://github.com/christophersmith/summer-mqtt-samples](https://github.com/christophersmith/summer-mqtt-samples)
+Check out the samples provided at: [https://github.com/christophersmith/summer-mqtt-samples](https://github.com/christophersmith/summer-mqtt-samples)
+
+## Javadoc
+
+summer-mqtt-core [![Javadocs](https://www.javadoc.io/badge/com.github.christophersmith/summer-mqtt-core.svg)](https://www.javadoc.io/doc/com.github.christophersmith/summer-mqtt-core)
+
+summer-mqtt-paho [![Javadocs](https://www.javadoc.io/badge/com.github.christophersmith/summer-mqtt-paho.svg)](https://www.javadoc.io/doc/com.github.christophersmith/summer-mqtt-paho)
