@@ -1,6 +1,6 @@
 # Summer MQTT
 
-Summer MQTT is a MQTT Client wrapper service for Spring Framework, and is intended as a flexible alternate to using Spring Integration MQTT. The first iteration provides an implementation that uses the asynchronous Paho MQTT Client.
+Summer MQTT is a MQTT Client abstraction service for Spring Framework projects, and is intended as a flexible and light alternate to using Spring Integration MQTT. The first iteration provides an implementation that uses the asynchronous Paho MQTT Client.
 
 ## Why Summer MQTT?
 
