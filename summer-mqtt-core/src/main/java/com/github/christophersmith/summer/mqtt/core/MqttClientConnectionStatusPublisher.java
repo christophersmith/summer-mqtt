@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Christopher Smith - https://github.com/christophersmith
+ * Copyright (c) 2019 Christopher Smith - https://github.com/christophersmith
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -32,7 +32,7 @@ public interface MqttClientConnectionStatusPublisher
      * 
      * @param clientId the Client ID the client is configured with
      * @param connectionType the {@link MqttClientConnectionType} the client is configured with
-     * @return a {@link byte[]} value containing the payload to publish, or null if undefined
+     * @return a byte array value containing the payload to publish, or null if undefined
      */
     byte[] getConnectedPayload(String clientId, MqttClientConnectionType connectionType);
 
@@ -45,7 +45,7 @@ public interface MqttClientConnectionStatusPublisher
      * 
      * @param clientId the Client ID the client is configured with
      * @param connectionType the {@link MqttClientConnectionType} the client is configured with
-     * @return a {@link byte[]} value containing the payload to publish, or null if undefined
+     * @return a byte array value containing the payload to publish, or null if undefined
      */
     byte[] getDisconnectedPayload(String clientId, MqttClientConnectionType connectionType);
 

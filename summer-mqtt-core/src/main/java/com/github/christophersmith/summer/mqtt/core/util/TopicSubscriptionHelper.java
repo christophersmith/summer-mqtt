@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Christopher Smith - https://github.com/christophersmith
+ * Copyright (c) 2019 Christopher Smith - https://github.com/christophersmith
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -59,10 +59,10 @@ public final class TopicSubscriptionHelper
     }
 
     /**
-     * Returns a {@link String[]} of the Topic Filters that have been subscribed to.
+     * Returns a String array of the Topic Filters that have been subscribed to.
      * 
      * @param topicSubscriptions a {@link List} value
-     * @return a {@link String[]} of the Topic Filters
+     * @return a String array of the Topic Filters
      */
     public static String[] getSubscribedTopicFilters(List<TopicSubscription> topicSubscriptions)
     {

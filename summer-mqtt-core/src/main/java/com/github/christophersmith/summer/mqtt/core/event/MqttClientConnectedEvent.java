@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 Christopher Smith - https://github.com/christophersmith
+ * Copyright (c) 2019 Christopher Smith - https://github.com/christophersmith
  * 
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -63,7 +63,7 @@ public class MqttClientConnectedEvent extends MqttConnectionStatusEvent
     }
 
     /**
-     * Returns a {@link String[]} of the Topics this Client is subscribed to.
+     * Returns a String array of the Topics this Client is subscribed to.
      * 
      * @return the subscribed Topics
      */
