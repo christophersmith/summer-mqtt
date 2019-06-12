@@ -14,12 +14,14 @@
 package com.github.christophersmith.summer.mqtt.core.util;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.messaging.MessagingException;
 
 import com.github.christophersmith.summer.mqtt.core.event.MqttClientConnectedEvent;
 import com.github.christophersmith.summer.mqtt.core.event.MqttClientConnectionFailureEvent;
 import com.github.christophersmith.summer.mqtt.core.event.MqttClientConnectionLostEvent;
 import com.github.christophersmith.summer.mqtt.core.event.MqttClientDisconnectedEvent;
 import com.github.christophersmith.summer.mqtt.core.event.MqttMessageDeliveredEvent;
+import com.github.christophersmith.summer.mqtt.core.event.MqttMessagePublishFailureEvent;
 import com.github.christophersmith.summer.mqtt.core.event.MqttMessagePublishedEvent;
 
 /**
@@ -161,6 +163,28 @@ public final class MqttClientEventPublisher
         {
             applicationEventPublisher.publishEvent(
                 new MqttMessagePublishedEvent(clientId, messageIdentifier, correlationId, source));
+        }
+    }
+
+    /**
+     * Publishes a {@link MqttMessagePublishFailureEvent} message to the
+     * {@link ApplicationEventPublisher}.
+     * <p>
+     * If the {@link ApplicationEventPublisher} instance is null, no event message will be
+     * published.
+     * 
+     * @param clientId the Client ID value
+     * @param exception the {@link MessagingException} for this event
+     * @param applicationEventPublisher the {@link ApplicationEventPublisher} value
+     * @param source the source that sent this event
+     */
+    public void publishMessagePublishFailureEvent(String clientId, MessagingException exception,
+        ApplicationEventPublisher applicationEventPublisher, Object source)
+    {
+        if (applicationEventPublisher != null)
+        {
+            applicationEventPublisher
+                .publishEvent(new MqttMessagePublishFailureEvent(clientId, exception, source));
         }
     }
 }

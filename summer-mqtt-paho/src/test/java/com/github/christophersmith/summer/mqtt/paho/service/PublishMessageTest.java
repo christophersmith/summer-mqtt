@@ -24,11 +24,14 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.support.StaticApplicationContext;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.StringUtils;
 
 import com.github.christophersmith.summer.mqtt.core.MqttClientConnectionType;
 import com.github.christophersmith.summer.mqtt.core.event.MqttMessageDeliveredEvent;
+import com.github.christophersmith.summer.mqtt.core.event.MqttMessagePublishFailureEvent;
 import com.github.christophersmith.summer.mqtt.core.event.MqttMessagePublishedEvent;
 import com.github.christophersmith.summer.mqtt.core.event.MqttMessageStatusEvent;
 import com.github.christophersmith.summer.mqtt.core.util.MqttHeaderHelper;
@@ -37,8 +40,10 @@ import com.github.christophersmith.summer.mqtt.paho.service.util.BrokerHelper;
 public class PublishMessageTest implements ApplicationListener<MqttMessageStatusEvent>
 {
     private static final String                               EXCEPTION_SUBSCRIBER_CANNOT_PUBLISH_FORMAT = "Client ID %s is setup as a SUBSCRIBER and could not publish this message.";
+    private static final String                               VALUE_TEST                                 = "Test";
     private ConcurrentMap<String, MqttMessagePublishedEvent>  publishedMessages                          = new ConcurrentHashMap<String, MqttMessagePublishedEvent>();
     private ConcurrentMap<Integer, MqttMessageDeliveredEvent> deliveredMessages                          = new ConcurrentHashMap<Integer, MqttMessageDeliveredEvent>();
+    private ConcurrentMap<String, Message<?>>                 failedMessages                             = new ConcurrentHashMap<String, Message<?>>();
     @Rule
     public ExpectedException                                  thrown                                     = ExpectedException
         .none();
@@ -49,7 +54,7 @@ public class PublishMessageTest implements ApplicationListener<MqttMessageStatus
         thrown.expect(MessagingException.class);
         thrown.expectMessage(
             String.format(EXCEPTION_SUBSCRIBER_CANNOT_PUBLISH_FORMAT, BrokerHelper.getClientId()));
-        PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
+        final PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
             BrokerHelper.getBrokerUri(), BrokerHelper.getClientId(),
             MqttClientConnectionType.SUBSCRIBER, null);
         service.handleMessage(null);
@@ -60,22 +65,28 @@ public class PublishMessageTest implements ApplicationListener<MqttMessageStatus
     {
         thrown.expect(IllegalArgumentException.class);
         thrown.expectMessage("'message' must be set!");
-        PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
+        final PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
             BrokerHelper.getBrokerUri(), BrokerHelper.getClientId(),
             MqttClientConnectionType.PUBLISHER, null);
         service.handleMessage(null);
     }
 
     @Test
-    public void testPublishMessageClientNotConnected() throws MqttException
+    public void testPublishMessageClientNotConnected() throws MqttException, InterruptedException
     {
         thrown.expect(MessagingException.class);
         thrown.expectMessage(String.format("Client ID %s is disconnected. Could not send message.",
             BrokerHelper.getClientId()));
-        PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
+        final PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
             BrokerHelper.getBrokerUri(), BrokerHelper.getClientId(),
             MqttClientConnectionType.PUBLISHER, null);
-        service.handleMessage(MessageBuilder.withPayload("Test").build());
+        final String correlationIdentifier = UUID.randomUUID().toString();
+        service.handleMessage(MessageBuilder.withPayload(VALUE_TEST)
+            .setHeader(MqttHeaderHelper.CORRELATION_ID, correlationIdentifier).build());
+        Thread.sleep(500);
+        Assert.assertTrue(failedMessages.containsKey(correlationIdentifier));
+        final Message<?> message = failedMessages.get(correlationIdentifier);
+        Assert.assertEquals(message.getPayload(), VALUE_TEST);
     }
 
     @Test
@@ -85,28 +96,28 @@ public class PublishMessageTest implements ApplicationListener<MqttMessageStatus
         thrown.expectMessage(String.format(
             "Client ID '%s' could not publish this message because either the topic or payload isn't set, or the payload could not be converted.",
             BrokerHelper.getClientId()));
-        PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
+        final PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
             BrokerHelper.getBrokerUri(), BrokerHelper.getClientId(),
             MqttClientConnectionType.PUBLISHER, null);
         service.start();
-        service.handleMessage(MessageBuilder.withPayload("Test").build());
+        service.handleMessage(MessageBuilder.withPayload(VALUE_TEST).build());
     }
 
     @Test
     public void testPublishMessageWithCorrelationIdVerification()
         throws MqttException, InterruptedException
     {
-        StaticApplicationContext applicationContext = new StaticApplicationContext();
+        final StaticApplicationContext applicationContext = new StaticApplicationContext();
         applicationContext.addApplicationListener(this);
         applicationContext.refresh();
         applicationContext.start();
-        PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
+        final PahoAsyncMqttClientService service = new PahoAsyncMqttClientService(
             BrokerHelper.getBrokerUri(), BrokerHelper.getClientId(),
             MqttClientConnectionType.PUBLISHER, null);
         service.setApplicationEventPublisher(applicationContext);
         service.start();
         String correlationIdentifier = UUID.randomUUID().toString();
-        service.handleMessage(MessageBuilder.withPayload("Test")
+        service.handleMessage(MessageBuilder.withPayload(VALUE_TEST)
             .setHeader(MqttHeaderHelper.TOPIC,
                 String.format("client/%s", BrokerHelper.getClientId()))
             .setHeader(MqttHeaderHelper.CORRELATION_ID, correlationIdentifier).build());
@@ -115,7 +126,7 @@ public class PublishMessageTest implements ApplicationListener<MqttMessageStatus
         MqttMessagePublishedEvent publishedEvent = publishedMessages.get(correlationIdentifier);
         Assert.assertTrue(deliveredMessages.containsKey(publishedEvent.getMessageIdentifier()));
         correlationIdentifier = UUID.randomUUID().toString();
-        service.handleMessage(MessageBuilder.withPayload("Test".getBytes())
+        service.handleMessage(MessageBuilder.withPayload(VALUE_TEST.getBytes())
             .setHeader(MqttHeaderHelper.TOPIC,
                 String.format("client/%s", BrokerHelper.getClientId()))
             .setHeader(MqttHeaderHelper.CORRELATION_ID, correlationIdentifier).build());
@@ -128,11 +139,11 @@ public class PublishMessageTest implements ApplicationListener<MqttMessageStatus
     }
 
     @Override
-    public void onApplicationEvent(MqttMessageStatusEvent event)
+    public void onApplicationEvent(final MqttMessageStatusEvent event)
     {
         if (event instanceof MqttMessagePublishedEvent)
         {
-            MqttMessagePublishedEvent publishedEvent = (MqttMessagePublishedEvent) event;
+            final MqttMessagePublishedEvent publishedEvent = (MqttMessagePublishedEvent) event;
             if (publishedEvent.getCorrelationId() != null)
             {
                 publishedMessages.put(publishedEvent.getCorrelationId(), publishedEvent);
@@ -140,9 +151,19 @@ public class PublishMessageTest implements ApplicationListener<MqttMessageStatus
         }
         if (event instanceof MqttMessageDeliveredEvent)
         {
-            MqttMessageDeliveredEvent deliveredEvent = (MqttMessageDeliveredEvent) event;
+            final MqttMessageDeliveredEvent deliveredEvent = (MqttMessageDeliveredEvent) event;
             deliveredMessages.put(deliveredEvent.getMessageIdentifier(), deliveredEvent);
         }
-
+        if (event instanceof MqttMessagePublishFailureEvent)
+        {
+            final MqttMessagePublishFailureEvent failureEvent = (MqttMessagePublishFailureEvent) event;
+            final String correlationIdentifier = MqttHeaderHelper
+                .getCorrelationIdHeaderValue(failureEvent.getException().getFailedMessage());
+            if (StringUtils.isEmpty(correlationIdentifier))
+            {
+                failedMessages.put(correlationIdentifier,
+                    failureEvent.getException().getFailedMessage());
+            }
+        }
     }
 }

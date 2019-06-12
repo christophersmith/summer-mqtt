@@ -89,7 +89,7 @@
 				<artifactId>maven-javadoc-plugin</artifactId>
 				<version>3.1.0</version>
 				<configuration>
-					<additionalJOption>-html4</additionalJOption>
+					<additionalJOption>-html5</additionalJOption>
 				</configuration>
 				<executions>
 					<execution>

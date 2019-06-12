@@ -93,21 +93,24 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
      * @throws IllegalArgumentException if the {@code message} is null
      * @throws MessagingException if the {@code message} could not be sent
      */
-    public void handleMessage(Message<?> message) throws MessagingException
+    public void handleMessage(final Message<?> message) throws MessagingException
     {
         if (MqttClientConnectionType.SUBSCRIBER == connectionType)
         {
-            throw new MessagingException(message,
+            final MessagingException exception = new MessagingException(message,
                 String.format(
                     "Client ID %s is setup as a SUBSCRIBER and could not publish this message.",
                     getClientId()));
+            mqttClientEventPublisher.publishMessagePublishFailureEvent(getClientId(), exception,
+                applicationEventPublisher, this);
+            throw exception;
         }
         Assert.notNull(message, "'message' must be set!");
         try
         {
             if (mqttClient.isConnected())
             {
-                String topic = MqttHeaderHelper.getTopicHeaderValue(message);
+                final String topic = MqttHeaderHelper.getTopicHeaderValue(message);
                 byte[] payload = null;
                 // TODO: really need to use a payload converter
                 if (message.getPayload() != null
@@ -120,18 +123,22 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
                 {
                     payload = ((String) message.getPayload()).getBytes();
                 }
-                MqttQualityOfService qualityOfService = MqttHeaderHelper
+                final MqttQualityOfService qualityOfService = MqttHeaderHelper
                     .getMqttQualityOfServiceHeaderValue(message,
                         mqttClientConfiguration.getDefaultQualityOfService().getLevelIdentifier());
-                boolean retained = MqttHeaderHelper.getRetainedHeaderValue(message);
+                final boolean retained = MqttHeaderHelper.getRetainedHeaderValue(message);
                 if (StringUtils.isEmpty(topic)
                     || payload == null)
                 {
-                    throw new MessagingException(message, String.format(
-                        "Client ID '%s' could not publish this message because either the topic or payload isn't set, or the payload could not be converted.",
-                        getClientId()));
+                    final MessagingException exception = new MessagingException(message,
+                        String.format(
+                            "Client ID '%s' could not publish this message because either the topic or payload isn't set, or the payload could not be converted.",
+                            getClientId()));
+                    mqttClientEventPublisher.publishMessagePublishFailureEvent(getClientId(),
+                        exception, applicationEventPublisher, this);
+                    throw exception;
                 }
-                IMqttDeliveryToken token = mqttClient.publish(topic, payload,
+                final IMqttDeliveryToken token = mqttClient.publish(topic, payload,
                     qualityOfService.getLevelIdentifier(), retained);
                 mqttClientEventPublisher.publishMessagePublishedEvent(getClientId(),
                     token.getMessageId(), MqttHeaderHelper.getCorrelationIdHeaderValue(message),
@@ -139,16 +146,22 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
             }
             else
             {
-                throw new MessagingException(message, String.format(
+                final MessagingException exception = new MessagingException(message, String.format(
                     "Client ID %s is disconnected. Could not send message.", getClientId()));
+                mqttClientEventPublisher.publishMessagePublishFailureEvent(getClientId(), exception,
+                    applicationEventPublisher, this);
+                throw exception;
             }
         }
         catch (MqttException ex)
         {
-            throw new MessagingException(message,
+            final MessagingException exception = new MessagingException(message,
                 String.format("Client ID %s encountered an issue and the message couldn't be sent.",
                     getClientId()),
                 ex);
+            mqttClientEventPublisher.publishMessagePublishFailureEvent(getClientId(), exception,
+                applicationEventPublisher, this);
+            throw exception;
         }
     }
 
@@ -174,7 +187,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
             if (mqttClient.isConnected()
                 && topicSubscriptions.size() > 0)
             {
-                for (TopicSubscription topicSubscription : topicSubscriptions)
+                for (final TopicSubscription topicSubscription : topicSubscriptions)
                 {
                     if (!topicSubscription.isSubscribed())
                     {
@@ -233,7 +246,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
     }
 
     @Override
-    public void subscribe(String topicFilter, MqttQualityOfService qualityOfService)
+    public void subscribe(final String topicFilter, final MqttQualityOfService qualityOfService)
     {
         if (MqttClientConnectionType.PUBLISHER == connectionType)
         {
@@ -297,7 +310,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
     }
 
     @Override
-    public void unsubscribe(String topicFilter)
+    public void unsubscribe(final String topicFilter)
     {
         if (MqttClientConnectionType.PUBLISHER == connectionType)
         {
@@ -309,7 +322,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
         reentrantLock.lock();
         try
         {
-            TopicSubscription topicSubscription = TopicSubscriptionHelper
+            final TopicSubscription topicSubscription = TopicSubscriptionHelper
                 .findByTopicFilter(topicFilter, topicSubscriptions);
             if (topicSubscription != null)
             {
@@ -419,7 +432,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
      * {@link MqttClientConnectionLostEvent} message.
      */
     @Override
-    public void connectionLost(Throwable throwable)
+    public void connectionLost(final Throwable throwable)
     {
         started = false;
         LOG.error(String.format("Client ID %s lost the connection.", getClientId()), throwable);
@@ -443,7 +456,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
      * Attempts to publish a {@link MqttMessageDeliveredEvent} message.
      */
     @Override
-    public void deliveryComplete(IMqttDeliveryToken token)
+    public void deliveryComplete(final IMqttDeliveryToken token)
     {
         mqttClientEventPublisher.publishMessageDeliveredEvent(getClientId(), token.getMessageId(),
             applicationEventPublisher, this);
@@ -456,7 +469,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
      * {@link MessageChannel}.
      */
     @Override
-    public void messageArrived(String topic, MqttMessage message) throws Exception
+    public void messageArrived(final String topic, final MqttMessage message) throws Exception
     {
         try
         {
@@ -495,7 +508,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
      * If the connection was made from a reconnect, the {@link #start()} method is called.
      */
     @Override
-    public void connectComplete(boolean reconnect, String serverUri)
+    public void connectComplete(final boolean reconnect, final String serverUri)
     {
         if (reconnect)
         {
@@ -503,7 +516,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
         }
     }
 
-    private void publishConnectionStatus(boolean connected)
+    private void publishConnectionStatus(final boolean connected)
     {
         if (mqttClientConfiguration.getMqttClientConnectionStatusPublisher() != null)
         {
@@ -526,7 +539,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
             if (payload != null
                 && !StringUtils.isEmpty(topic))
             {
-                MqttQualityOfService qualityOfService = mqttClientConfiguration
+                final MqttQualityOfService qualityOfService = mqttClientConfiguration
                     .getMqttClientConnectionStatusPublisher()
                     .getStatusMqttQualityOfService() == null
                         ? mqttClientConfiguration.getDefaultQualityOfService()
@@ -534,7 +547,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
                             .getStatusMqttQualityOfService();
                 try
                 {
-                    IMqttDeliveryToken token = mqttClient.publish(topic, payload,
+                    final IMqttDeliveryToken token = mqttClient.publish(topic, payload,
                         qualityOfService.getLevelIdentifier(), mqttClientConfiguration
                             .getMqttClientConnectionStatusPublisher().isStatusMessageRetained());
                     mqttClientEventPublisher.publishMessagePublishedEvent(getClientId(),
@@ -560,7 +573,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
         else if (reconnectService != null
             && taskScheduler != null)
         {
-            Date nextReconnectDate = reconnectService.getNextReconnectionDate();
+            final Date nextReconnectDate = reconnectService.getNextReconnectionDate();
             if (nextReconnectDate != null)
             {
                 firstStartOccurred = true;
@@ -594,7 +607,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
      * {@link ReconnectService#connected(boolean)} method is called with a value of false.
      */
     @Override
-    public void onFailure(IMqttToken token, Throwable throwable)
+    public void onFailure(final IMqttToken token, final Throwable throwable)
     {
         mqttClientEventPublisher.publishConnectionFailureEvent(getClientId(), isAutoReconnect(),
             throwable, applicationEventPublisher, this);
@@ -605,7 +618,7 @@ public final class PahoAsyncMqttClientService extends AbstractMqttClientService
     }
 
     @Override
-    public void onSuccess(IMqttToken token)
+    public void onSuccess(final IMqttToken token)
     {
 
     }
