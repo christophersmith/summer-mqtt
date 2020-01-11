@@ -195,7 +195,7 @@ public class AutomaticReconnectTest implements ApplicationListener<MqttConnectio
         CRUSHER_PROXY.reopen();
         Assert.assertFalse(service.isStarted());
         Assert.assertFalse(service.isConnected());
-        Thread.sleep(1100);
+        Thread.sleep(2100);
         Assert.assertTrue(service.isConnected());
         Assert.assertTrue(service.isStarted());
         Assert.assertEquals(2, clientConnectedCount.get());
@@ -337,7 +337,7 @@ public class AutomaticReconnectTest implements ApplicationListener<MqttConnectio
         CRUSHER_PROXY.reopen();
         Assert.assertFalse(service.isStarted());
         Assert.assertFalse(service.isConnected());
-        Thread.sleep(1100);
+        Thread.sleep(2100);
         Assert.assertTrue(service.isStarted());
         Assert.assertTrue(service.isConnected());
         Assert.assertEquals(2, clientConnectedCount.get());

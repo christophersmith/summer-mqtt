@@ -19,8 +19,7 @@ public class BrokerHelper
 {
     private static final String CLIENT_ID         = MqttAsyncClient.generateClientId();
     private static final String BROKER_URI_FORMAT = "tcp://%s:%s";
-    private static final String BROKER_HOST_NAME  = "localhost";
-    // private static final String BROKER_HOST_NAME = "iot.eclipse.org";
+    private static final String BROKER_HOST_NAME = "mqtt.eclipse.org";
     private static final int    BROKER_PORT       = 1883;
     private static final String PROXY_HOST_NAME   = "localhost";
     private static final int    PROXY_PORT        = 10080;
