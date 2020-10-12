@@ -46,7 +46,7 @@
 		
 		<!-- Dependency Properties -->
 		<eclipse.paho.version>1.2.2</eclipse.paho.version>
-		<junit.version>4.12</junit.version>
+		<junit.version>4.13.1</junit.version>
 		<mockito.version>2.25.0</mockito.version>
 		<slf4j.version>1.7.25</slf4j.version>
 		<spring.framework.version>4.3.15.RELEASE</spring.framework.version>
